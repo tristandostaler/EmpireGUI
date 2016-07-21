@@ -1,0 +1,28 @@
+/*@import url("pse_gui.material-fx.css");*/
+
+.bottomPane {
+	-fx-padding: 20 10 10 10;
+	-fx-spacing: 10;
+	-fx-alignment: top-right;
+}
+
+.button {
+	-fx-min-width: 70;
+}
+
+.checkBoxContainer {
+	-fx-padding: 20 0 0 10;
+}
+
+.label{
+	-fx-padding: 10 0 0 0;
+}
+
+.mainContainer {
+	-fx-padding: 10;
+	-fx-spacing: 5;
+}
+
+.vbox{
+	-fx-padding: 0 10 0 10;
+}

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="root" 
+      prefHeight="400.0" 
+      prefWidth="500.0" 
+	  xmlns="http://javafx.com/javafx/8" 
+      xmlns:fx="http://javafx.com/fxml"
+	  fx:controller="pse_gui.LoginView" 
+	  styleClass="mainContainer">
+	
+	<HBox>
+		<VBox styleClass="vbox" 
+			  HBox.hgrow="always">
+			<Label text="Username"/>
+			<TextField fx:id="username"/>
+		</VBox>	
+		<VBox styleClass="vbox" HBox.hgrow="always">
+			<Label text="Password"/>
+			<PasswordField fx:id="password"/>
+		</VBox>
+	</HBox>
+	
+	<HBox>
+		<VBox styleClass="vbox" 
+		      HBox.hgrow="always">
+			<Label text="Address"/>
+			<TextField fx:id="address"/>
+		</VBox>
+		<VBox styleClass="vbox" 
+		      HBox.hgrow="always">
+			<Label text="Port"/>
+			<TextField fx:id="port"/>
+		</VBox>	
+	</HBox>
+	
+	<VBox styleClass="checkBoxContainer">
+		<CheckBox fx:id="checkBox" 
+		          text="Remote SSH Connection"/>
+	</VBox>
+
+	<VBox>
+		<HBox>
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshUsername"
+					   text="Username"/>
+				<TextField fx:id="sshUsername"/>
+			</VBox>	
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshPassword"
+				       text="Password"/>
+				<PasswordField fx:id="sshPassword"/>
+			</VBox>
+		</HBox>
+		
+		<HBox>
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshServerAddress"
+				       text="Server Address"/>
+				<TextField fx:id="sshAddress" text=""/>
+			</VBox>
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshPort"
+				       text="Port"/>
+				<TextField fx:id="sshPort"/>
+			</VBox>	
+		</HBox>
+	</VBox>
+	
+	<HBox styleClass="bottomPane">
+		<Button fx:id="btnCancel"
+				text="Cancel" 
+				onAction="#onBtnCancelClick"/>
+		<Button fx:id="btnLogin" 
+		        text="Login" 
+		        onAction="#onBtnLoginClick"/>
+	</HBox>
+
+</VBox>

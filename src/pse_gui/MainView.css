@@ -1,0 +1,51 @@
+/*@import url("pse_gui.material-fx.css");*/
+
+.boldLabel {
+	-fx-font-weight: bold;
+}
+
+.bottomPane {
+    -fx-padding: 5px;
+	-fx-spacing: 10px;
+	-fx-alignment: center;
+}
+
+.breadCrumbContainer {
+	-fx-border-width: 0px 0px 1px 0px;
+	-fx-border-color: #DADADA;
+	-fx-padding: 10px;
+	-fx-background-color: #FAFAFA;
+}
+
+.button-raised {
+	-fx-min-width: 100px;
+	/*-fx-background-color: #2196F3;
+	-fx-text-fill: #FFFFFF;*/
+}
+
+.container {
+	-fx-padding: 5px;
+	-fx-alignment: center;
+}
+
+.label, .boldLabel {
+	-fx-padding: 5px;
+}
+
+.mainContainer {
+	-fx-padding: 0 10 10 10;
+	-fx-background-color: #FCFCFC;
+}
+
+.noBorderSplitPane {
+	-fx-box-border: transparent;
+}
+
+.splitPane {
+}
+
+.topPane {
+	-fx-padding: 10 0 10 0;
+	-fx-spacing: 10px;
+	-fx-alignment: bottom-right;
+}

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.controlsfx.control.BreadCrumbBar?>
+
+<BorderPane prefHeight="400.0"
+		    prefWidth="600.0"
+		    xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
+			fx:controller="pse_gui.MainView"
+			styleClass="mainContainer">
+
+	<!-- Top pane (connect button and user informations) -->
+	<top>
+		<BorderPane styleClass="topPane">
+			<center>
+				<Label fx:id="username" 
+					   styleClass="boldLabel"
+					   text="Not connected"/>
+			</center>
+			<right>
+				<Button fx:id="btnConnect"
+					    text="Connect"
+						styleClass="button-raised"
+					    onAction="#onBtnConnectClick"/>
+			</right>
+		</BorderPane>
+	</top>
+
+	<!-- Top center (left and right panel) -->
+	<center>
+		<SplitPane fx:id="horizontalSplitPane" 
+				   orientation="horizontal"
+				   styleClass="splitPane">
+		<VBox fx:id="leftContainer"  
+			  styleClass="container">
+		<Label text="Empire components" 
+			   styleClass="boldLabel"/>
+         <TreeView fx:id="tree" 
+         		   VBox.vgrow="always"
+		           showRoot="false">
+          <cellFactory></cellFactory>
+          </TreeView>
+          </VBox>
+          <AnchorPane fx:id="rightContainer">
+	          <SplitPane fx:id="verticalSplitPane"
+	          		     orientation="vertical"   
+	          		     styleClass="noBorderSplitPane"      
+	          		     AnchorPane.topAnchor="0.0" 
+			             AnchorPane.bottomAnchor="0.0"
+			             AnchorPane.leftAnchor="0.0" 
+			             AnchorPane.rightAnchor="0.0">
+			             
+	          	<VBox fx:id="centerContainer">
+		          	<HBox styleClass="breadCrumbContainer">
+		          		<BreadCrumbBar fx:id="breadCrumb"/>
+		          	</HBox>
+		          	<ScrollPane fitToHeight="true" VBox.vgrow="always">
+			          	<VBox fx:id="content" 
+			          	      styleClass="container"
+			          	      VBox.vgrow="always"/>
+			        </ScrollPane>
+	          	</VBox>
+	          	
+	          	<HBox fx:id="bottomContainer" 
+	          		  styleClass="bottomPane">
+	          		<VBox HBox.hgrow="always">
+		          		<Label text="Past events"
+		          			   styleClass="boldLabel"/>
+	          			<TextArea fx:id="logTextArea" 
+			          			  text=""
+			          			  editable="false"
+			          			  VBox.vgrow="always"/>
+		          	</VBox>
+
+          			<VBox fx:id="buttonsContainer" 
+          				  styleClass="bottomPane">
+	          			<Button fx:id="btnSend"
+	          					text="Send"
+	          					styleClass="button-raised"
+			          			onAction="#onBtnSendClick"/>
+	          			<Button fx:id="btnReset"
+	          					text="Reset" 
+	          					styleClass="button-raised"
+			          			onAction="#onBtnResetClick"/>
+			          	<Button fx:id="btnDelete"
+			          			text="Delete" 
+	          					styleClass="button-raised"
+			          			onAction="#onBtnDeleteClick"/>
+          			</VBox>
+	          	</HBox>
+	          </SplitPane>
+		  </AnchorPane>
+		</SplitPane>
+
+	</center>
+	
+</BorderPane>
