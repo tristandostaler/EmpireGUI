@@ -9,4 +9,7 @@ Jean-Philippe Champoux
 Guillaume Beaudry  
 Frédérick Lebel  
 
+ScreenShots are available in the folder "ScreenShots".
+They will be linked in the ReadMe soon.
+
 More description to come...  
