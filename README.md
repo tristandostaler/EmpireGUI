@@ -23,6 +23,7 @@ You can see in the picture below the overall look and feel. We are generating th
 
 
 EmpireGUI also display info when available. In this example, we received the launcher stager code:
+
 ![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/LauncherStagerGenerated.PNG)
 
 
