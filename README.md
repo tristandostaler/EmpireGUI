@@ -17,11 +17,6 @@ When you connect to it trough the GUI, you provide the user and password for the
 ![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/LoginScreen.PNG)
 
 
-For the moment, a few features are missing (like creating listeners directly from the GUI) but are in the TODO list.
-
-Feel free to help us make this project better! Pull requests are welcome!
-
-
 You can see in the picture below the overall look and feel. We are generating the "launcher" stager with defaults value and the listener named "MainListener". 
 
 ![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/GeneratingLauncherStager.PNG)
@@ -32,4 +27,6 @@ More screenShots are available in the folder "ScreenShots".
 To fix the import problem of javafx on ubuntu, do "sudo apt-get install openjfx".
 Source: http://stackoverflow.com/questions/32630354/the-import-javafx-cannot-be-resolved
 
-More description to come...  
+For the moment, a few features are missing (like creating listeners directly from the GUI) but are in the TODO list.
+
+Feel free to help us make this project better! Pull requests are welcome!
