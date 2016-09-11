@@ -22,6 +22,10 @@ You can see in the picture below the overall look and feel. We are generating th
 ![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/GeneratingLauncherStager.PNG)
 
 
+EmpireGUI also display info when available. In this example, we received the launcher stager code:
+![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/LauncherStagerGenerated.PNG)
+
+
 More screenShots are available in the folder "ScreenShots".
 
 To fix the import problem of javafx on ubuntu, do "sudo apt-get install openjfx".
