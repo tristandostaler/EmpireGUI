@@ -23,8 +23,10 @@ public class SharedCentralisedClass {
 	public void setMainView(MainView mainView){
 		this.mainView = mainView;
 		synchronized(queuedOutputLogArea) {
-			this.mainView.writeTextToLogArea(queuedOutputLogArea);
-			queuedOutputLogArea = "";
+			if(!queuedOutputLogArea.isEmpty()) {
+				this.mainView.writeTextToLogArea(queuedOutputLogArea);
+				queuedOutputLogArea = "";
+			}
 		}
 		synchronized(queuedStackTraceList) {
 			for(StackTraceQueueObject sto : queuedStackTraceList){

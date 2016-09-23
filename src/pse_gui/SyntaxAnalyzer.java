@@ -91,7 +91,7 @@ public class SyntaxAnalyzer {
 				if (key.equalsIgnoreCase(PSEConstants.FIELD_DESCRIPTION_KEY) && looksLikeAFieldObject == true)
 					fieldDescription = (String)value;
 				else if (key.equalsIgnoreCase(PSEConstants.FIELD_VALUE_KEY)  && looksLikeAFieldObject == true)
-					fieldValue = (String) value;
+					fieldValue = value.toString();
 				else if (key.equalsIgnoreCase(PSEConstants.FIELD_REQUIRED_KEY) && looksLikeAFieldObject == true)
 					fieldRequired = (Boolean)value;
 				else{

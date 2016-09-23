@@ -8,6 +8,7 @@ public class Model {
 	private ServerResponse listenerList;
 	private ServerResponse moduleList;
 	private UserRequest userRequest;
+	private ServerResponse listenerOptionsList;
 	
 	private SSHInformations SSHInformations;
 	private PowershellEmpireInformations powershellEmpireInformations;
@@ -78,5 +79,13 @@ public class Model {
 	
 	public ServerResponse getListenerList(){
 		return this.listenerList;
+	}
+	
+	public void setListenerOptionsList(ServerResponse serverResponse){
+		this.listenerOptionsList = serverResponse;
+	}
+	
+	public ServerResponse getListenerOptionsList(){
+		return this.listenerOptionsList;
 	}
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent;
@@ -62,7 +63,9 @@ public class MainView implements ChangeListener<Object> {
 	private final String STAGER_STRING = "stagers";
 	private final String AGENT_STRING = "agents";
 	private final String LISTENER_STRING = "listeners";
+	private final String CREATE_LISTENER_STRING = "create new listener";
 	private final String MODULE_STRING = "modules";
+	private final String LISTENER_OPTIONS_STRING = "listeneroptions";
 
 	private UIObjectCreator uiObjectCreator;
 	
@@ -75,10 +78,12 @@ public class MainView implements ChangeListener<Object> {
 	
 	private boolean HasRunLater = false;
 	
-	private String actualAgent = "";
+	private String actualItemToDelete = "";
+	
+	private ItemType deleteType;
 	
 	public MainView() {
-		
+		uiObjectCreator = new UIObjectCreator();
 	}
 	
 	private MapTreeItem addTreeItem(String title, HashMap<String, Object> value, MapTreeItem parent) {
@@ -88,6 +93,20 @@ public class MainView implements ChangeListener<Object> {
 			item = new MapTreeItem(title);
 			item.setMap(value);
 		    parent.getChildren().add(item);
+		}
+		else
+			item = existingItem;
+
+		return item;
+	}
+	
+	private MapTreeItem addTreeItemAtPosition(String title, HashMap<String, Object> value, MapTreeItem parent, int position) {
+		MapTreeItem item = null;
+		MapTreeItem existingItem = getItemOfName(title, parent);
+		if(existingItem == null) {
+			item = new MapTreeItem(title);
+			item.setMap(value);
+		    parent.getChildren().add(position, item);
 		}
 		else
 			item = existingItem;
@@ -216,6 +235,22 @@ public class MainView implements ChangeListener<Object> {
 		});
 	}
 	
+	public void notifyListenerOptionsUpdated() {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					initializeTreeView();
+					refreshTreeBranch(listenersItem, model.getListenerOptionsList().getValue());
+					//addTreeItem(CREATE_LISTENER_STRING, (HashMap<String, Object>)model.getListenerOptionsList().getValue(), listenersItem);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	
 	public void notifyModulesUpdated() {
 		Platform.runLater(new Runnable() {
 			@Override
@@ -302,6 +337,7 @@ public class MainView implements ChangeListener<Object> {
 											handler.getAgents();
 											handler.getModules();
 											handler.getListeners();
+											handler.getListenerOptions();
 										}
 										catch(Exception e) {
 											e.printStackTrace();
@@ -475,18 +511,42 @@ public class MainView implements ChangeListener<Object> {
 			handler.makeUserRequest(new StagerRequestResponseHandler());
 		else if(this.model.getUserRequest().getType() == ItemType.MODULE)
 			handler.makeUserRequest(new ModuleRequestResponseHandler());
+		else if(this.model.getUserRequest().getType() == ItemType.LISTENER) {
+			handler.makeUserRequest(new ListenerRequestResponseHandler());
+		}
 		else
 			handler.makeUserRequest(new UserRequestResponseHandler());
 	}
 	
-	public void onBtnResetClick() {
+	public class ListenerRequestResponseHandler extends ResponseHandler{
+
+		public ListenerRequestResponseHandler() {
+			super(false);
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			String s = serverResponse.getValue().toString();
+			System.out.println(s);
+			handler.getListeners();
+		}
+
+	}
+	
+	public void onBtnResetClick() { //TODO
 		logTextArea.appendText("> Reset current page command executed..\n" );
 	}
 	
 	public void onBtnDeleteClick(){
-		ItemType type = ItemType.AGENT;
-		this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "agents/" + actualAgent + "/kill"));
-		handler.makeUserRequest(new KillAgentResponseHandler());
+		if(deleteType == ItemType.AGENT) {
+			ItemType type = ItemType.AGENT;
+			this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "agents/" + actualItemToDelete + "/kill"));
+			handler.makeUserRequest(new KillAgentResponseHandler());
+		}
+		else if(deleteType == ItemType.LISTENER){
+			ItemType type = ItemType.LISTENER;
+			this.model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "listeners/" + actualItemToDelete));
+			handler.makeUserRequest(new DeleteListenerResponseHandler());
+		}
 	}
 	
 	public class KillAgentResponseHandler extends ResponseHandler{
@@ -497,7 +557,7 @@ public class MainView implements ChangeListener<Object> {
 		@Override
 		public void baseHandleResponse(ServerResponse serverResponse) {
 			ItemType type = ItemType.AGENT;
-			model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "agents/" + actualAgent));
+			model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "agents/" + actualItemToDelete));
 			handler.makeUserRequest(new DeleteAgentResponseHandler());
 		}
 
@@ -511,6 +571,18 @@ public class MainView implements ChangeListener<Object> {
 		@Override
 		public void baseHandleResponse(ServerResponse serverResponse) {
 			handler.getAgents();
+		}
+
+	}
+	
+	public class DeleteListenerResponseHandler extends ResponseHandler{
+
+		public DeleteListenerResponseHandler() {
+			super(false);
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			handler.getListeners();
 		}
 
 	}
@@ -548,7 +620,7 @@ public class MainView implements ChangeListener<Object> {
 		btnReset.setDisable(true);
 		btnSend.setDisable(true);
 		btnDelete.setDisable(true);
-		actualAgent = "";
+		actualItemToDelete = "";
 		
 		if(item != null && item.getMap() != null) {
 			//Label tempLabel = new Label(item.getMap().toString());
@@ -562,16 +634,25 @@ public class MainView implements ChangeListener<Object> {
 			
 			if(parent.getValue().equals(LISTENER_STRING)){
 				ItemType type = ItemType.LISTENER;
-				this.model.setUserRequest(null);
+				deleteType = ItemType.LISTENER;
+				if(item.getValue().equals(CREATE_LISTENER_STRING)) {
+					this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, item.getFieldList(), type, "listeners"));
+					btnReset.setDisable(false);
+					btnSend.setDisable(false);
+				}
+				else {
+					actualItemToDelete = item.getValue();
+					this.model.setUserRequest(null);
+					this.btnDelete.setDisable(false);
+				}
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
-				btnReset.setDisable(false);
-				btnSend.setDisable(false);
 			}
 			else if(parent.getValue().equals(AGENT_STRING)){
 				ItemType type = ItemType.AGENT;
+				deleteType = ItemType.AGENT;
 				this.model.setUserRequest(null);
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
-				actualAgent = item.getValue();
+				actualItemToDelete = item.getValue();
 				this.btnDelete.setDisable(false);
 				btnReset.setDisable(false);
 				btnSend.setDisable(false);
@@ -593,38 +674,78 @@ public class MainView implements ChangeListener<Object> {
 				btnSend.setDisable(false);
 			}
 		}
+		
 		if(item != null && item.getValue().equals(AGENT_STRING)){
 			handler.getAgents();
+		}
+		else if(item != null && item.getValue().equals(LISTENER_STRING)){
+			handler.getListeners();
+			handler.getListenerOptions();
 		}
 	}
 
 	private void refreshTreeBranch(MapTreeItem branch, Map<String, Object> map) {
 		
-		if(branch.getChildren() != null) {
-			branch.getChildren().clear();
+		if(map.get(LISTENER_OPTIONS_STRING) != null){
+			if(branch.getChildren().size() > 0 && branch.getChildren().get(0).getValue().equals(CREATE_LISTENER_STRING)){
+				branch.getChildren().remove(0);
+			}
+			/* 
+			 * Ok, the next part is really complicated for nothing but...hey, it works!
+			 * So the logic is this:
+			 * Normally, we have an array of listeners which are then an array of values. Here, we receive directly the array of values
+			 * so we need to access it as such (so parse everything until we have an array of values)
+			 * We then know that these values are all options for the listeners so we create a hashmap with the key "options"
+			 * (like normally we would have) and give the array with the options for the listener.
+			 * We then create a treeitem at position 0 of the branch "listeners" with the name "create a new listener".
+			 * That treeitem contains our array of "options".
+			*/
+			//We know we only have 1 element: the listener options
+			Map.Entry<String, Object> elem0 = (Entry<String, Object>)map.entrySet().iterator().next();
+			//We know it's a ArrayList of 1 hashmap of fields
+			ArrayList<HashMap<String, Object>> alElem0 = (ArrayList<HashMap<String, Object>>) elem0.getValue();
+			HashMap<String, Object> hmElem0 = (HashMap<String, Object>) alElem0.get(0);
+			HashMap<String, Object> hmElem0AsOptions = new HashMap<String, Object>();
+			hmElem0AsOptions.put("options", hmElem0);
+			addTreeItemAtPosition(CREATE_LISTENER_STRING, hmElem0AsOptions, branch,0);
 		}
-		
-		for(Map.Entry<String, Object> entry : map.entrySet()) {
-			Object value = entry.getValue();
-			if(value instanceof ArrayList) {
-				ArrayList<HashMap<String, Object>> list = (ArrayList<HashMap<String, Object>>)value;
-				if(list != null) {					
-					for(HashMap<String, Object> item : list) {
-						if(item.containsKey("Name")) {
-							String name = (String)item.get("Name"); 
-						    String[] parts = name.split("/");
-						    MapTreeItem curItem = branch;
-						    for(String part : parts) {
-					    	  curItem = addTreeItem(part, part.equals(parts[parts.length-1]) ? item : null, curItem);
-						    }
-						}
-						else if(item.containsKey("name")) {
-							String name = (String)item.get("name"); 
-						    String[] parts = name.split("/");
-						    MapTreeItem curItem = branch;
-						    for(String part : parts) {
-					    	  curItem = addTreeItem(part, part.equals(parts[parts.length-1]) ? item : null, curItem);
-						    }
+		else{
+			if(branch.getChildren() != null) {
+				if(map.get(LISTENER_STRING) != null){
+					if(branch.getChildren().size() > 0 && branch.getChildren().get(0).getValue().equals(CREATE_LISTENER_STRING)){
+						TreeItem<String> temp = branch.getChildren().get(0);
+						branch.getChildren().clear();
+						branch.getChildren().add(temp);
+					}
+					else
+						branch.getChildren().clear();
+				}
+				else
+					branch.getChildren().clear();
+			}
+			
+			for(Map.Entry<String, Object> entry : map.entrySet()) {
+				Object value = entry.getValue();
+				if(value instanceof ArrayList) {
+					ArrayList<HashMap<String, Object>> list = (ArrayList<HashMap<String, Object>>)value;
+					if(list != null) {					
+						for(HashMap<String, Object> item : list) {
+							if(item.containsKey("Name")) {
+								String name = (String)item.get("Name"); 
+							    String[] parts = name.split("/");
+							    MapTreeItem curItem = branch;
+							    for(String part : parts) {
+						    	  curItem = addTreeItem(part, part.equals(parts[parts.length-1]) ? item : null, curItem);
+							    }
+							}
+							else if(item.containsKey("name")) {
+								String name = (String)item.get("name"); 
+							    String[] parts = name.split("/");
+							    MapTreeItem curItem = branch;
+							    for(String part : parts) {
+						    	  curItem = addTreeItem(part, part.equals(parts[parts.length-1]) ? item : null, curItem);
+							    }
+							}
 						}
 					}
 				}

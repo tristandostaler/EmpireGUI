@@ -109,6 +109,20 @@ public class RequestHandler {
 
 	}
 	
+	private class ListenerOptionsResponseHandler extends ResponseHandler{
+
+		public ListenerOptionsResponseHandler(Boolean bypassIfError){
+			super(bypassIfError);
+		}
+		
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			model.setListenerOptionsList(serverResponse);
+			ui.notifyListenerOptionsUpdated();
+		}
+
+	}
+	
 	public void getModules() {
 		if(model.getPowershellEmpireConnection() != null) {
 			Communication comm = new Communication(Communication.METHODS.GET, "modules", new ModuleResponseHandler(true), null);
@@ -133,6 +147,13 @@ public class RequestHandler {
 	public void getListeners() {
 		if(model.getPowershellEmpireConnection() != null) {
 			Communication comm = new Communication(Communication.METHODS.GET, "listeners", new ListenerResponseHandler(true), null);
+			model.getPowershellEmpireConnection().send(comm);
+		}
+	}
+	
+	public void getListenerOptions() {
+		if(model.getPowershellEmpireConnection() != null) {
+			Communication comm = new Communication(Communication.METHODS.GET, "listeners/options", new ListenerOptionsResponseHandler(false), null);
 			model.getPowershellEmpireConnection().send(comm);
 		}
 	}

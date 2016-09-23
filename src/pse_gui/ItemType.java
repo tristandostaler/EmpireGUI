@@ -4,7 +4,8 @@ public enum ItemType {
 	MODULE,
 	AGENT,
 	STAGER, 
-	LISTENER;
+	LISTENER,
+	CREATE_LISTENER;
 	
 
     public String getStringValue() {
