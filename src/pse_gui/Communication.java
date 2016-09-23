@@ -12,10 +12,8 @@ public class Communication {
 	private String endPoint;
 	private ResponseHandler responseHandlerCallback;
 	private JSON json;
-	private SharedCentralisedClass sharedClass;
 	
-	public Communication(SharedCentralisedClass sharedClass, METHODS method, String endPoint, ResponseHandler responseHandlerCallback, JSON json){
-		this.sharedClass = sharedClass;
+	public Communication(METHODS method, String endPoint, ResponseHandler responseHandlerCallback, JSON json){
 		this.method = method;
 		this.endPoint = endPoint;
 		this.endPoint = this.endPoint.replace("\\", "/");

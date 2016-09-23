@@ -13,10 +13,7 @@ public class Model {
 	private PowershellEmpireInformations powershellEmpireInformations;
 	private PowershellEmpireConnection powershellEmpireConnection;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public Model(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
+	public Model(){
 	}
 
 	public ServerResponse getStagerList() {

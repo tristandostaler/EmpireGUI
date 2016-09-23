@@ -9,11 +9,9 @@ import javafx.scene.control.TreeItem;
 public class MapTreeItem extends TreeItem<String>{
 
 	private HashMap<String, Object> map;
-	private SharedCentralisedClass sharedClass;
 	
-	public MapTreeItem(SharedCentralisedClass sharedClass, String name) {
+	public MapTreeItem(String name) {
 		super(name);
-		this.sharedClass = sharedClass;
 	}
 	
 	public HashMap<String, Object> getMap() {

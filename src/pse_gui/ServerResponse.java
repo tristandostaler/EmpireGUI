@@ -15,10 +15,7 @@ public class ServerResponse {
 	 */
 	private Map<String, Object> value;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public ServerResponse(SharedCentralisedClass sharedClass, Map<String, Object> value){
-		this.sharedClass = sharedClass;
+	public ServerResponse(Map<String, Object> value){
 		this.value = value;
 	}
 	

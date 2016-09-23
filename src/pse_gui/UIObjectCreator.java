@@ -20,10 +20,7 @@ import javafx.scene.text.Text;
 
 public class UIObjectCreator {
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public UIObjectCreator(SharedCentralisedClass sharedClass) {
-		this.sharedClass = sharedClass;
+	public UIObjectCreator() {
 	}
 	
 	public VBox generateVBox(UserRequest ur, HashMap<String, Object> map) {

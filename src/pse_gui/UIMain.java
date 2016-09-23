@@ -32,12 +32,10 @@ public class UIMain extends Application {
 			}
 		});
 		
-		SharedCentralisedClass sharedClass = new SharedCentralisedClass(mainController);
+		SharedCentralisedClass.getInstance().setMainView(mainController);
 		
-		mainController.setSharedClass(sharedClass);
-		
-		Model model = new Model(sharedClass);
-		RequestHandler handler = new RequestHandler(sharedClass);
+		Model model = new Model();
+		RequestHandler handler = new RequestHandler();
 		
 		handler.setMainController(mainController);
 		handler.setModel(model);

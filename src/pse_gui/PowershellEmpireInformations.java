@@ -7,10 +7,8 @@ public class PowershellEmpireInformations {
 	private String host;
 	private int port;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public PowershellEmpireInformations(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
+	public PowershellEmpireInformations(){
+		
 	}
 	
 	public String getUserName() {

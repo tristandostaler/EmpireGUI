@@ -3,10 +3,7 @@ package pse_gui;
 public class JSON {
 	private String jsonData;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public JSON(SharedCentralisedClass sharedClass, String jsonData){
-		this.sharedClass = sharedClass;
+	public JSON(String jsonData){
 		this.jsonData = jsonData;
 	}
 	

@@ -17,11 +17,9 @@ import javafx.scene.web.WebView;
 public abstract class ResponseHandler {
 	
 	private SyntaxAnalyzer syntaxAnalyzer;
-	private SharedCentralisedClass sharecClass;
 	private Boolean bypassIfError;
-	public ResponseHandler(SharedCentralisedClass sharecClass, Boolean bypassIfError){
-		syntaxAnalyzer = new SyntaxAnalyzer(sharecClass);
-		this.sharecClass = sharecClass;
+	public ResponseHandler(Boolean bypassIfError){
+		syntaxAnalyzer = new SyntaxAnalyzer();
 		this.bypassIfError = bypassIfError;
 	}
 	
@@ -94,7 +92,7 @@ public abstract class ResponseHandler {
 	
 	private void showException(Map<String, Object> map){
 		ArrayList<Map<String, Object>> ex = (ArrayList<Map<String, Object>>) map.get("Exception");
-		this.sharecClass.showStackTraceInAlertWindow((String)ex.get(0).get("Message"), (String)ex.get(0).get("Trace"));
+		SharedCentralisedClass.getInstance().showStackTraceInAlertWindow((String)ex.get(0).get("Message"), (String)ex.get(0).get("Trace"));
 	}
 	
 	protected abstract void baseHandleResponse(ServerResponse serverResponse);

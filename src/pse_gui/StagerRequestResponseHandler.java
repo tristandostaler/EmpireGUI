@@ -11,11 +11,8 @@ import javafx.scene.control.Alert.AlertType;
 
 public class StagerRequestResponseHandler extends ResponseHandler{
 
-	private SharedCentralisedClass sharedClass;
-	
-	public StagerRequestResponseHandler(SharedCentralisedClass sharedClass) {
-		super(sharedClass, false);
-		this.sharedClass = sharedClass;
+	public StagerRequestResponseHandler() {
+		super(false);
 	}
 	@Override
 	public void baseHandleResponse(ServerResponse serverResponse) {
@@ -29,7 +26,7 @@ public class StagerRequestResponseHandler extends ResponseHandler{
 				else{
 					String s = serverResponse.getValue().toString();
 					System.out.println(s);
-					sharedClass.writeTextToLogArea(s);
+					SharedCentralisedClass.getInstance().writeTextToLogArea(s);
 				}
 			}
 			else{
@@ -38,7 +35,7 @@ public class StagerRequestResponseHandler extends ResponseHandler{
 				else{
 					String s = serverResponse.getValue().toString();
 					System.out.println(s);
-					sharedClass.writeTextToLogArea(s);
+					SharedCentralisedClass.getInstance().writeTextToLogArea(s);
 				}
 			}
 		}
@@ -47,7 +44,7 @@ public class StagerRequestResponseHandler extends ResponseHandler{
 	
 	public void showOutut(Map<String, Object> map){
 		System.out.println(map.get("Output").toString());
-		sharedClass.writeTextToLogArea(map.get("Output").toString());
+		SharedCentralisedClass.getInstance().writeTextToLogArea(map.get("Output").toString());
 		
 		//Alert alert = new Alert(AlertType.INFORMATION, map.get("Output").toString(), ButtonType.OK);
 		//alert.showAndWait();

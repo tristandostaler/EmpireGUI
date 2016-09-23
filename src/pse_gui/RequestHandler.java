@@ -10,16 +10,13 @@ public class RequestHandler {
 	private MainView ui;
 	private SyntaxAnalyzer syntaxAnalyzer;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public RequestHandler(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
+	public RequestHandler(){
 		Initialise();
 	}
 	
 	public void connect(PowershellEmpireInformations infos) {
 		try {
-			this.model.setPowershellEmpireConnection(new PowershellEmpireConnection(this.sharedClass, infos));
+			this.model.setPowershellEmpireConnection(new PowershellEmpireConnection(infos));
 		} catch (KeyManagementException e) {
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
@@ -29,13 +26,13 @@ public class RequestHandler {
 	
 	public void connect(PowershellEmpireInformations infos, SSHInformations sshInfos) {
 		try {
-			this.model.setPowershellEmpireConnection(new PowershellEmpireConnection(this.sharedClass, sshInfos, infos));
+			this.model.setPowershellEmpireConnection(new PowershellEmpireConnection(sshInfos, infos));
 		} catch (KeyManagementException e) {
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		} catch (JSchException e) {
-			sharedClass.showStackTraceInAlertWindow(e.getMessage(), e);
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 		}
 	}
 	
@@ -44,7 +41,7 @@ public class RequestHandler {
 	}
 
 	private void Initialise(){
-		this.syntaxAnalyzer = new SyntaxAnalyzer(this.sharedClass);
+		this.syntaxAnalyzer = new SyntaxAnalyzer();
 	}
 	
 	public void setModel(Model model) {
@@ -59,7 +56,7 @@ public class RequestHandler {
 	private class ModuleResponseHandler extends ResponseHandler{
 		
 		public ModuleResponseHandler(Boolean bypassIfError){
-			super(sharedClass, bypassIfError);
+			super(bypassIfError);
 		}
 
 		@Override
@@ -73,7 +70,7 @@ public class RequestHandler {
 	private class AgentResponseHandler extends ResponseHandler{
 		
 		public AgentResponseHandler(Boolean bypassIfError){
-			super(sharedClass, bypassIfError);
+			super(bypassIfError);
 		}
 
 		@Override
@@ -87,7 +84,7 @@ public class RequestHandler {
 	private class StagerResponseHandler extends ResponseHandler{
 
 		public StagerResponseHandler(Boolean bypassIfError){
-			super(sharedClass, bypassIfError);
+			super(bypassIfError);
 		}
 		
 		@Override
@@ -101,7 +98,7 @@ public class RequestHandler {
 	private class ListenerResponseHandler extends ResponseHandler{
 
 		public ListenerResponseHandler(Boolean bypassIfError){
-			super(sharedClass, bypassIfError);
+			super(bypassIfError);
 		}
 		
 		@Override
@@ -114,35 +111,35 @@ public class RequestHandler {
 	
 	public void getModules() {
 		if(model.getPowershellEmpireConnection() != null) {
-			Communication comm = new Communication(this.sharedClass, Communication.METHODS.GET, "modules", new ModuleResponseHandler(true), null);
+			Communication comm = new Communication(Communication.METHODS.GET, "modules", new ModuleResponseHandler(true), null);
 			model.getPowershellEmpireConnection().send(comm);
 		}
 	}
 	
 	public void getAgents() {
 		if(model.getPowershellEmpireConnection() != null) {
-			Communication comm = new Communication(this.sharedClass, Communication.METHODS.GET, "agents", new AgentResponseHandler(true), null);
+			Communication comm = new Communication(Communication.METHODS.GET, "agents", new AgentResponseHandler(true), null);
 			model.getPowershellEmpireConnection().send(comm);
 		}
 	}
 
 	public void getStagers() {
 		if(model.getPowershellEmpireConnection() != null) {
-			Communication comm = new Communication(this.sharedClass, Communication.METHODS.GET, "stagers", new StagerResponseHandler(false), null);
+			Communication comm = new Communication(Communication.METHODS.GET, "stagers", new StagerResponseHandler(false), null);
 			model.getPowershellEmpireConnection().send(comm);
 		}
 	}
 	
 	public void getListeners() {
 		if(model.getPowershellEmpireConnection() != null) {
-			Communication comm = new Communication(this.sharedClass, Communication.METHODS.GET, "listeners", new ListenerResponseHandler(true), null);
+			Communication comm = new Communication(Communication.METHODS.GET, "listeners", new ListenerResponseHandler(true), null);
 			model.getPowershellEmpireConnection().send(comm);
 		}
 	}
 
 	public void makeUserRequest(ResponseHandler handler) {
 		JSON json = syntaxAnalyzer.userRequestToJson(this.model.getUserRequest());
-		Communication comm = new Communication(this.sharedClass, this.model.getUserRequest().getMethod(), this.model.getUserRequest().getEndpoint(), handler, json);
+		Communication comm = new Communication(this.model.getUserRequest().getMethod(), this.model.getUserRequest().getEndpoint(), handler, json);
 		this.model.getPowershellEmpireConnection().send(comm);
 	}
 }

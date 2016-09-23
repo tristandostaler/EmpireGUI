@@ -7,10 +7,8 @@ public class SSHInformations {
 	private String host;
 	private int port;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public SSHInformations(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
+	public SSHInformations(){
+		
 	}
 	
 	public String getUserName() {

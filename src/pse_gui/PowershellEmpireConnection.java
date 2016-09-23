@@ -47,13 +47,10 @@ public class PowershellEmpireConnection {
 	
 	private Boolean isSSH = false;
 	
-	private SharedCentralisedClass sharedClass;
-	
 	private final int INVALID_TOKEN_ERROR_CODE = 403;
 	private final int INVALID_PSE_CREDS_ERROR_CODE = 401;
 	
-	public PowershellEmpireConnection(SharedCentralisedClass sharedClass, SSHInformations sshInfo, PowershellEmpireInformations pseInfo) throws KeyManagementException, NoSuchAlgorithmException, JSchException{
-		this.sharedClass = sharedClass;
+	public PowershellEmpireConnection(SSHInformations sshInfo, PowershellEmpireInformations pseInfo) throws KeyManagementException, NoSuchAlgorithmException, JSchException{
 		this.isSSH = true;
 		this.sshInfo = sshInfo;
 		this.pseInfo = pseInfo;
@@ -70,8 +67,7 @@ public class PowershellEmpireConnection {
 		makeConnection();
 	}
 	
-	public PowershellEmpireConnection(SharedCentralisedClass sharedClass, PowershellEmpireInformations pseInfo) throws KeyManagementException, NoSuchAlgorithmException{
-		this.sharedClass = sharedClass;
+	public PowershellEmpireConnection(PowershellEmpireInformations pseInfo) throws KeyManagementException, NoSuchAlgorithmException{
 		this.pseInfo = pseInfo;
 		makeConnection();
 	}
@@ -91,10 +87,6 @@ public class PowershellEmpireConnection {
 			}
 		}
 		token = null;
-	}
-	
-	protected SharedCentralisedClass getSharedClass(){
-		return this.sharedClass;
 	}
 	
 	private void makeConnection() throws NoSuchAlgorithmException, KeyManagementException{
@@ -133,8 +125,8 @@ public class PowershellEmpireConnection {
 	    try{
 	    	JSONArray exception = tokenO.getJSONArray("Exception");
 	    	String exceptionMessage = exception.getJSONObject(0).getString("Message");
-	    	this.sharedClass.writeTextToLogArea(exceptionMessage);
-	    	this.sharedClass.showStackTraceInAlertWindow(exceptionMessage, exception.getJSONObject(0).getString("Trace"));
+	    	SharedCentralisedClass.getInstance().writeTextToLogArea(exceptionMessage);
+	    	SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(exceptionMessage, exception.getJSONObject(0).getString("Trace"));
 	    } catch (JSONException e){
 	    	return;
 	    }
@@ -165,7 +157,7 @@ public class PowershellEmpireConnection {
 			}
 			
 			System.out.println(url.toString());
-			this.sharedClass.writeTextToLogArea(url.toString());
+			SharedCentralisedClass.getInstance().writeTextToLogArea(url.toString());
 			
 		    HttpsURLConnection uc = (HttpsURLConnection)url.openConnection();
 		    
@@ -179,7 +171,7 @@ public class PowershellEmpireConnection {
 		    	uc.setRequestMethod("GET");
 		    
 		    System.out.println(uc.getRequestMethod());
-		    this.sharedClass.writeTextToLogArea(uc.getRequestMethod());
+		    SharedCentralisedClass.getInstance().writeTextToLogArea(uc.getRequestMethod());
 		    
 		    if(method == Communication.METHODS.POST){
 		    	uc.setRequestProperty("Content-Type", "application/json");
@@ -190,7 +182,7 @@ public class PowershellEmpireConnection {
 				wr.close();
 
 			    System.out.println(postData);
-			    this.sharedClass.writeTextToLogArea(postData);
+			    SharedCentralisedClass.getInstance().writeTextToLogArea(postData);
 		    }
 		    
 		    
@@ -217,7 +209,7 @@ public class PowershellEmpireConnection {
 				String line = convertStreamToString(inputStreamReader);
 				
 				System.out.println("Raw return: " + line);
-				this.sharedClass.writeTextToLogArea("Raw return: " + line);
+				SharedCentralisedClass.getInstance().writeTextToLogArea("Raw return: " + line);
 				
 				return line;
 		    }
@@ -228,7 +220,7 @@ public class PowershellEmpireConnection {
 			e.printStackTrace(pw);
 			//e.printStackTrace();
 			String st = sw.toString().replace("\r\n", "\\n"); //Replace so JSON can hadle it!
-			this.sharedClass.writeTextToLogArea(st);
+			SharedCentralisedClass.getInstance().writeTextToLogArea(st);
 			//System.out.println(st);
 			return "{ 'Exception': [{ 'Message': 'Exception in sendRequest: " + e.getMessage() + "', 'Trace': '" + st + "' }] }";
 		}
@@ -277,7 +269,7 @@ class RequestRunner extends Thread {
 	
     public void run() {
         String returnedString = this.pseConn.sendRequest(this.comm.getMethod(), this.comm.getEndPoint(), this.comm.getJson() != null ? this.comm.getJson().getJSONFormatedData() : "");
-        comm.getCallBack().handleResponse(new JSON(pseConn.getSharedClass(), returnedString));
+        comm.getCallBack().handleResponse(new JSON(returnedString));
     }
 }
 

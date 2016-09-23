@@ -11,10 +11,7 @@ import org.json.JSONObject;
 
 public class SyntaxAnalyzer {
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public SyntaxAnalyzer(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
+	public SyntaxAnalyzer(){
 	}
 	
 	public JSON userRequestToJson(UserRequest userRequest){
@@ -27,14 +24,14 @@ public class SyntaxAnalyzer {
 			if (currentField.getValue() != null && !currentField.getValue().isEmpty())
 				requestAsMap.put(currentField.getName(), currentField.getValue());
 		}
-		return new JSON(this.sharedClass, new JSONObject(requestAsMap).toString());
+		return new JSON(new JSONObject(requestAsMap).toString());
 	}
 	
 	public ServerResponse jsonToServerResponse(JSON json){
 		try{
 			JSONObject referenceNode = new JSONObject(json.getJSONFormatedData());
 			Map<String, Object> parsedReferenceNode = parseNode(referenceNode, "");
-			return new ServerResponse(this.sharedClass, parsedReferenceNode);
+			return new ServerResponse(parsedReferenceNode);
 		}catch(Exception e){
 			Map<String, Object> errorMap = new HashMap<String, Object>();
 			if (e instanceof JSONException){
@@ -43,7 +40,7 @@ public class SyntaxAnalyzer {
 			else
 				errorMap.put(PSEConstants.ERROR_KEY, "An unknown error occured when parsing JSON. Here is the error:\n\n" + e.toString());
 			
-			return new ServerResponse(this.sharedClass, errorMap);
+			return new ServerResponse(errorMap);
 		}
 		
 	}
@@ -111,7 +108,7 @@ public class SyntaxAnalyzer {
 					}
 					else {
 						//It really is a field, and all the values are filled up. Adding a new Field object.
-						Field field = new Field(this.sharedClass, parentKey, fieldDescription, fieldValue, fieldRequired);
+						Field field = new Field(parentKey, fieldDescription, fieldValue, fieldRequired);
 						keyValueMap.put(parentKey, field);
 					}
 				}

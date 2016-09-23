@@ -12,10 +12,7 @@ public class UserRequest {
 	private Communication.METHODS method;
 	private ItemType type;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public UserRequest(SharedCentralisedClass sharedClass, Communication.METHODS method, List<Field> fieldList, ItemType type, Map<String, Object> objectMap){
-		this.sharedClass = sharedClass;
+	public UserRequest(Communication.METHODS method, List<Field> fieldList, ItemType type, Map<String, Object> objectMap){
 		this.method = method;
 		this.type = type;
 		if (fieldList == null)
@@ -25,8 +22,7 @@ public class UserRequest {
 		this.endpoint = type.getStringValue() + "/" + getEndpoint(objectMap);
 	}
 	
-	public UserRequest(SharedCentralisedClass sharedClass, Communication.METHODS method, List<Field> fieldList, ItemType type){
-		this.sharedClass = sharedClass;
+	public UserRequest(Communication.METHODS method, List<Field> fieldList, ItemType type){
 		this.method = method;
 		this.type = type;
 		if (fieldList == null)
@@ -36,8 +32,7 @@ public class UserRequest {
 		this.endpoint = type.getStringValue();
 	}
 	
-	public UserRequest(SharedCentralisedClass sharedClass, Communication.METHODS method, List<Field> fieldList, ItemType type, String endpoint){
-		this.sharedClass = sharedClass;
+	public UserRequest(Communication.METHODS method, List<Field> fieldList, ItemType type, String endpoint){
 		this.method = method;
 		this.type = type;
 		if (fieldList == null)

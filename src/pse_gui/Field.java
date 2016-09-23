@@ -4,10 +4,7 @@ public class Field {
 	private String name, description, value;
 	private Boolean required;
 	
-	private SharedCentralisedClass sharedClass;
-	
-	public Field(SharedCentralisedClass sharedClass, String Name, String Description, String Value, Boolean Required){
-		this.sharedClass = sharedClass;
+	public Field(String Name, String Description, String Value, Boolean Required){
 		this.name = Name;
 		this.description = Description;
 		if (Value != null && !Value.isEmpty())
@@ -43,6 +40,6 @@ public class Field {
 	}
 	
 	public Field copy(){
-		return new Field(this.sharedClass, name, description, value, required);
+		return new Field(name, description, value, required);
 	}
 }

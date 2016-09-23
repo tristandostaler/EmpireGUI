@@ -21,7 +21,6 @@ import javafx.scene.layout.VBox;
 public class LoginView {
 
 	public static EventType<ConnectEvent> CONNECT = new EventType<ConnectEvent>("CONNECT");
-	private SharedCentralisedClass sharedClass;
 	
 	private boolean isRemote;
 	
@@ -59,8 +58,7 @@ public class LoginView {
 		
 	}
 	
-	public void setSharedClass(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
+	public void setSharedClass(){
 	}
 	
 	public boolean isRemote() {
@@ -68,7 +66,7 @@ public class LoginView {
 	}
 	
 	public PowershellEmpireInformations getInformations() {
-		PowershellEmpireInformations infos = new PowershellEmpireInformations(this.sharedClass);
+		PowershellEmpireInformations infos = new PowershellEmpireInformations();
 		try
 		{
 			infos.setUserName(username.getText());
@@ -77,13 +75,13 @@ public class LoginView {
 			infos.setPort(Integer.parseInt(port.getText()));
 		}
 		catch (NumberFormatException e) {
-			sharedClass.showStackTraceInAlertWindow("One or more information in the Powershell Empire informations is invalid", e);
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow("One or more information in the Powershell Empire informations is invalid", e);
 		}
 		return infos;
 	}
 	
 	public SSHInformations getSSHInformations() {
-		SSHInformations infos = new SSHInformations(this.sharedClass);
+		SSHInformations infos = new SSHInformations();
 		try
 		{
 			infos.setUserName(sshUsername.getText());
@@ -92,7 +90,7 @@ public class LoginView {
 			infos.setPort(Integer.parseInt(sshPort.getText()));
 		}
 		catch (NumberFormatException e) {
-			sharedClass.showStackTraceInAlertWindow("One or more information in the SS informations is invalid", e);
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow("One or more information in the SS informations is invalid", e);
 		}
 		return infos;
 	}
@@ -113,7 +111,7 @@ public class LoginView {
 	private void fireConnect() {
 		writeToFile();
 		if(root != null) {
-			root.getScene().getWindow().fireEvent(new ConnectEvent(this.sharedClass));
+			root.getScene().getWindow().fireEvent(new ConnectEvent());
 		}
 	}
 	

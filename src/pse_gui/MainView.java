@@ -71,8 +71,6 @@ public class MainView implements ChangeListener<Object> {
 	
 	private Service<Void> backgroundThread;
 	
-	private SharedCentralisedClass sharedClass;
-	
 	private String logTextAreaBuffer = "";
 	
 	private boolean HasRunLater = false;
@@ -83,16 +81,11 @@ public class MainView implements ChangeListener<Object> {
 		
 	}
 	
-	public void setSharedClass(SharedCentralisedClass sharedClass){
-		this.sharedClass = sharedClass;
-		uiObjectCreator = new UIObjectCreator(this.sharedClass);
-	}
-	
 	private MapTreeItem addTreeItem(String title, HashMap<String, Object> value, MapTreeItem parent) {
 		MapTreeItem item = null;
 		MapTreeItem existingItem = getItemOfName(title, parent);
 		if(existingItem == null) {
-			item = new MapTreeItem(this.sharedClass, title);
+			item = new MapTreeItem(title);
 			item.setMap(value);
 		    parent.getChildren().add(item);
 		}
@@ -164,15 +157,15 @@ public class MainView implements ChangeListener<Object> {
 	
 	private void initializeTreeView() {
 		if(treeRoot == null) {
-			treeRoot = new MapTreeItem(this.sharedClass, "/");
+			treeRoot = new MapTreeItem("/");
 			tree.setShowRoot(false);
 			tree.setRoot(treeRoot);
 			
 			synchronized (treeRoot) {
-				stagersItem = new MapTreeItem(this.sharedClass, STAGER_STRING);
-				agentsItem = new MapTreeItem(this.sharedClass, AGENT_STRING);
-				listenersItem = new MapTreeItem(this.sharedClass, LISTENER_STRING);
-				modulesItem = new MapTreeItem(this.sharedClass, MODULE_STRING);
+				stagersItem = new MapTreeItem(STAGER_STRING);
+				agentsItem = new MapTreeItem(AGENT_STRING);
+				listenersItem = new MapTreeItem(LISTENER_STRING);
+				modulesItem = new MapTreeItem(MODULE_STRING);
 				treeRoot.getChildren().add(stagersItem);
 				treeRoot.getChildren().add(agentsItem);
 				treeRoot.getChildren().add(listenersItem);
@@ -264,8 +257,6 @@ public class MainView implements ChangeListener<Object> {
 				
 				loginController = fxmlLoader.getController();
 				
-				loginController.setSharedClass(this.sharedClass);
-				
 				loginStage.setTitle("PowerShell Empire Login");
 				loginStage.initModality(Modality.APPLICATION_MODAL);
 				loginStage.setResizable(false);
@@ -288,7 +279,7 @@ public class MainView implements ChangeListener<Object> {
 									if(loginController.isRemote())
 										sshInfos = loginController.getSSHInformations();
 									else{
-										sshInfos = new SSHInformations(sharedClass);
+										sshInfos = new SSHInformations();
 										sshInfos.setUserName("");
 										sshInfos.setPassword("");
 										sshInfos.setHost("");
@@ -479,13 +470,13 @@ public class MainView implements ChangeListener<Object> {
 		logTextArea.appendText("> Send command executed..\n" );
 		
 		if(this.model.getUserRequest() == null)
-			handler.makeUserRequest(new UserRequestResponseHandler(this.sharedClass));
+			handler.makeUserRequest(new UserRequestResponseHandler());
 		else if(this.model.getUserRequest().getType() == ItemType.STAGER)
-			handler.makeUserRequest(new StagerRequestResponseHandler(this.sharedClass));
+			handler.makeUserRequest(new StagerRequestResponseHandler());
 		else if(this.model.getUserRequest().getType() == ItemType.MODULE)
-			handler.makeUserRequest(new ModuleRequestResponseHandler(this.sharedClass));
+			handler.makeUserRequest(new ModuleRequestResponseHandler());
 		else
-			handler.makeUserRequest(new UserRequestResponseHandler(this.sharedClass));
+			handler.makeUserRequest(new UserRequestResponseHandler());
 	}
 	
 	public void onBtnResetClick() {
@@ -494,32 +485,28 @@ public class MainView implements ChangeListener<Object> {
 	
 	public void onBtnDeleteClick(){
 		ItemType type = ItemType.AGENT;
-		this.model.setUserRequest(new UserRequest(this.sharedClass, Communication.METHODS.GET, null, type, "agents/" + actualAgent + "/kill"));
-		handler.makeUserRequest(new KillAgentResponseHandler(this.sharedClass));
+		this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "agents/" + actualAgent + "/kill"));
+		handler.makeUserRequest(new KillAgentResponseHandler());
 	}
 	
 	public class KillAgentResponseHandler extends ResponseHandler{
 
-		private SharedCentralisedClass sharedClass;
-		public KillAgentResponseHandler(SharedCentralisedClass sharedClass) {
-			super(sharedClass, false);
-			this.sharedClass = sharedClass;
+		public KillAgentResponseHandler() {
+			super(false);
 		}
 		@Override
 		public void baseHandleResponse(ServerResponse serverResponse) {
 			ItemType type = ItemType.AGENT;
-			model.setUserRequest(new UserRequest(this.sharedClass, Communication.METHODS.DELETE, null, type, "agents/" + actualAgent));
-			handler.makeUserRequest(new DeleteAgentResponseHandler(this.sharedClass));
+			model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "agents/" + actualAgent));
+			handler.makeUserRequest(new DeleteAgentResponseHandler());
 		}
 
 	}
 	
 	public class DeleteAgentResponseHandler extends ResponseHandler{
 
-		private SharedCentralisedClass sharedClass;
-		public DeleteAgentResponseHandler(SharedCentralisedClass sharedClass) {
-			super(sharedClass, false);
-			this.sharedClass = sharedClass;
+		public DeleteAgentResponseHandler() {
+			super(false);
 		}
 		@Override
 		public void baseHandleResponse(ServerResponse serverResponse) {
@@ -592,15 +579,15 @@ public class MainView implements ChangeListener<Object> {
 			else if(parent.getValue().equals(STAGER_STRING)){
 				ItemType type = ItemType.STAGER;
 				ArrayList<Field> copy = (ArrayList<Field>) item.getFieldList().clone();
-				copy.add(new Field(this.sharedClass, "StagerName", "The stager name", ((MapTreeItem)item).getValue(), true));
-				this.model.setUserRequest(new UserRequest(this.sharedClass, Communication.METHODS.POST, copy, type));
+				copy.add(new Field("StagerName", "The stager name", ((MapTreeItem)item).getValue(), true));
+				this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, copy, type));
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
 				btnReset.setDisable(false);
 				btnSend.setDisable(false);
 			}
 			else if(parent.getValue().equals(MODULE_STRING)){
 				ItemType type = ItemType.MODULE;
-				this.model.setUserRequest(new UserRequest(this.sharedClass, Communication.METHODS.POST, item.getFieldList(), type, item.getMap()));
+				this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, item.getFieldList(), type, item.getMap()));
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
 				btnReset.setDisable(false);
 				btnSend.setDisable(false);
