@@ -13,7 +13,7 @@ EmpireGUI offers a GUI for the projet PowerShell Empire (pse). Almost everything
 
 EmpireGUI can be used to create Listeners, delete Listeners, launch modules on Agents (and receive the output when available) and use stagers (and receive the output when available).
 
-EmpireGUI can be used locally (on the same machine as the PowerShell Empire server) or via SSH. You can start PowerShell Empire with the following command to enable the REST API: ./empire --username empireadmin --password thePassword --headless
+EmpireGUI can be used locally (on the same machine as the PowerShell Empire server), on the local network or via SSH. You can start PowerShell Empire with the following command to enable the REST API: ./empire --username empireadmin --password thePassword --headless
 When you connect to it trough the GUI, you provide the user and password for the pse server (here empireadmin/thePassword) and if needed, you can check the checkbox to use ssh. You then provide the ssh address, port, username and password for the connection. 
 
 ![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/LoginScreen.PNG)
