@@ -4,6 +4,8 @@ public class PowershellEmpireInformations {
 	
 	private String userName;
 	private String password;
+	private String token;
+	private boolean isTokenInstead;
 	private String host;
 	private int port;
 	
@@ -22,6 +24,18 @@ public class PowershellEmpireInformations {
 	}
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
+	}
+	public boolean isTokenInstead(){
+		return isTokenInstead;
+	}
+	public void setIsTokenInstead(boolean isTokenInstead){
+		this.isTokenInstead = isTokenInstead;
 	}
 	public String getHost() {
 		return host;

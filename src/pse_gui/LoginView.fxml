@@ -13,14 +13,24 @@
 	<HBox>
 		<VBox styleClass="vbox" 
 			  HBox.hgrow="always">
-			<Label text="Username"/>
+			<Label fx:id="usernameLbl" text="Username"/>
 			<TextField fx:id="username"/>
 		</VBox>	
 		<VBox styleClass="vbox" HBox.hgrow="always">
-			<Label text="Password"/>
+			<Label fx:id="passwordLbl" text="Password"/>
 			<PasswordField fx:id="password"/>
 		</VBox>
 	</HBox>
+	
+	<VBox styleClass="checkBoxContainer">
+		<CheckBox fx:id="checkBoxToken" 
+		          text="Give token instead"/>
+          <VBox styleClass="vbox" HBox.hgrow="always">
+			<Label fx:id= "tokenLbl" 
+					text="Token"/>
+			<TextField fx:id="tokenTxtField"/>
+		</VBox>
+	</VBox>
 	
 	<HBox>
 		<VBox styleClass="vbox" 

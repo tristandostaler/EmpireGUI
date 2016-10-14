@@ -23,10 +23,13 @@ public class LoginView {
 	public static EventType<ConnectEvent> CONNECT = new EventType<ConnectEvent>("CONNECT");
 	
 	private boolean isRemote;
+	private boolean isTokenInstead;
 	
 	@FXML VBox root;
 	@FXML TextField username;
+	@FXML Label usernameLbl;
 	@FXML PasswordField password;
+	@FXML Label passwordLbl;
 	@FXML TextField address;
 	@FXML TextField port;
 	@FXML CheckBox checkBox;
@@ -40,6 +43,9 @@ public class LoginView {
 	@FXML Label txtSshPort;
 	@FXML Button btnCancel;
 	@FXML Button btnLogin;
+	@FXML CheckBox checkBoxToken;
+	@FXML TextField tokenTxtField;
+	@FXML Label tokenLbl;
 	
 	private final String CONNECTION_INFORMATION_FILES = System.getProperty("user.home") + "/PSEConnectionInformations.psegui";
 	private final String POWERSHELLEMPIRE_USERNAME_KEY = "POWERSHELLEMPIRE_USERNAME";
@@ -50,6 +56,7 @@ public class LoginView {
 	private final String SSH_PASSWORD_KEY = "PASSWORD_SSH";
 	private final String SSH_PORT_KEY = "SSH_PORT";
 	private final String SERVER_ADDRESS_KEY = "SERVER_ADDRESS";
+	private final String TOKEN = "TOKEN";
 	private final String SEPARATOR = "=";
 	private final String NEW_LINE = System.getProperty("line.separator");
 	
@@ -58,11 +65,11 @@ public class LoginView {
 		
 	}
 	
-	public void setSharedClass(){
-	}
-	
 	public boolean isRemote() {
 		return isRemote;
+	}
+	public boolean isTokenInstead() {
+		return isTokenInstead;
 	}
 	
 	public PowershellEmpireInformations getInformations() {
@@ -71,6 +78,8 @@ public class LoginView {
 		{
 			infos.setUserName(username.getText());
 			infos.setPassword(password.getText());
+			infos.setToken(tokenTxtField.getText());
+			infos.setIsTokenInstead(isTokenInstead);
 			infos.setHost(address.getText());		
 			infos.setPort(Integer.parseInt(port.getText()));
 		}
@@ -119,6 +128,7 @@ public class LoginView {
     public void initialize() {
 		readFile();
 		setRemoteValuesDisabled(true);
+		setUseTokenInsteadDisabled(true);
 		
 		checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
 
@@ -130,7 +140,14 @@ public class LoginView {
 			
 		});
 		
-		
+		checkBoxToken.selectedProperty().addListener(new ChangeListener<Boolean>() {
+			
+			@Override
+			public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
+				isTokenInstead = arg2;
+				setUseTokenInsteadDisabled(!arg2);
+			}
+		});
 		
 	}
 	
@@ -140,6 +157,16 @@ public class LoginView {
 	
 	public void onBtnLoginClick() {
 		fireConnect();
+	}
+	
+	private void setUseTokenInsteadDisabled(boolean disabled) {
+		tokenTxtField.setDisable(disabled);
+		tokenLbl.setDisable(disabled);
+		
+		usernameLbl.setDisable(!disabled);
+		username.setDisable(!disabled);
+		passwordLbl.setDisable(!disabled);
+		password.setDisable(!disabled);
 	}
 	
 	private void setRemoteValuesDisabled(boolean disabled) {
@@ -175,6 +202,8 @@ public class LoginView {
 				    	sshPort.setText(keyValue[1]);
 				    else if (keyValue[0].equals(SERVER_ADDRESS_KEY))
 				    	sshAddress.setText(keyValue[1]);
+				    else if (keyValue[0].equals(TOKEN))
+				    	tokenTxtField.setText(keyValue[1]);
 				}
 			}
 		}
@@ -193,6 +222,7 @@ public class LoginView {
 			text += SSH_PASSWORD_KEY + SEPARATOR + sshPassword.getText() + NEW_LINE;
 			text += SSH_PORT_KEY + SEPARATOR + sshPort.getText() + NEW_LINE;
 			text += SERVER_ADDRESS_KEY + SEPARATOR + sshAddress.getText() + NEW_LINE;
+			text += TOKEN + SEPARATOR + tokenTxtField.getText() + NEW_LINE;
 			byte[] myBytes = text.getBytes();
 			steam.write(myBytes);
 			steam.close();

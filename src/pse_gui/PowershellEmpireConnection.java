@@ -101,28 +101,33 @@ public class PowershellEmpireConnection {
 	    
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
         
-	   refreshToken();
+       refreshToken();
 	}
 	
 	private void refreshToken(){
-		token = null;
-		String tokenR = "";
-		tokenR = sendRequest(Communication.METHODS.POST, "admin/login", "{\"username\":\"" + this.pseInfo.getUserName() + "\", \"password\":\"" + this.pseInfo.getPassword() + "\"}");
-		System.out.println(tokenR);
-	    JSONObject tokenO = new JSONObject(tokenR);
-	    try {
-			this.token = tokenO.getString("token");
-		} catch (JSONException e) {
-			token = "None";
+		if(this.pseInfo.isTokenInstead())
+			this.token = this.pseInfo.getToken();
+		else
+		{
+			token = null;
+			String tokenR = "";
+			tokenR = sendRequest(Communication.METHODS.POST, "admin/login", "{\"username\":\"" + this.pseInfo.getUserName() + "\", \"password\":\"" + this.pseInfo.getPassword() + "\"}");
+			System.out.println(tokenR);
+			JSONObject tokenO = new JSONObject(tokenR);
+			try {
+				this.token = tokenO.getString("token");
+			} catch (JSONException e) {
+				token = "None";
+			}
+			try{
+				JSONArray exception = tokenO.getJSONArray("Exception");
+				String exceptionMessage = exception.getJSONObject(0).getString("Message");
+				SharedCentralisedClass.getInstance().writeTextToLogArea(exceptionMessage);
+				SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(exceptionMessage, exception.getJSONObject(0).getString("Trace"));
+			} catch (JSONException e){
+				return;
+			}
 		}
-	    try{
-	    	JSONArray exception = tokenO.getJSONArray("Exception");
-	    	String exceptionMessage = exception.getJSONObject(0).getString("Message");
-	    	SharedCentralisedClass.getInstance().writeTextToLogArea(exceptionMessage);
-	    	SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(exceptionMessage, exception.getJSONObject(0).getString("Trace"));
-	    } catch (JSONException e){
-	    	return;
-	    }
 	}
 	
 	public void send(Communication comm){

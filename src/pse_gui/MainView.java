@@ -296,7 +296,7 @@ public class MainView implements ChangeListener<Object> {
 				loginStage.initModality(Modality.APPLICATION_MODAL);
 				loginStage.setResizable(false);
 				
-				Scene scene = new Scene(root, 400, 330);
+				Scene scene = new Scene(root, 400, 430);
 				scene.getStylesheets().add("pse_gui/LoginView.css");
 				
 				backgroundThread = new Service<Void>() {
