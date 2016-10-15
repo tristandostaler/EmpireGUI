@@ -25,9 +25,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
 
 public class PowershellEmpireConnection {
 
@@ -43,7 +46,7 @@ public class PowershellEmpireConnection {
 	private final int INVALID_TOKEN_ERROR_CODE = 403;
 	private final int INVALID_PSE_CREDS_ERROR_CODE = 401;
 	
-	public PowershellEmpireConnection(SSHInformations sshInfo, PowershellEmpireInformations pseInfo) throws KeyManagementException, NoSuchAlgorithmException, JSchException{
+	public PowershellEmpireConnection(SSHInformations sshInfo, PowershellEmpireInformations pseInfo) throws KeyManagementException, NoSuchAlgorithmException, JSchException {
 		this.isSSH = true;
 		this.sshInfo = sshInfo;
 		this.pseInfo = pseInfo;
@@ -80,6 +83,10 @@ public class PowershellEmpireConnection {
 			}
 		}
 		token = null;
+	}
+	
+	public ChannelSftp getSFTPChannel(){
+		return this.sshConn.getSFTPChannel();
 	}
 	
 	private void makeConnection() throws NoSuchAlgorithmException, KeyManagementException{
@@ -278,6 +285,7 @@ class SSHConnectionHandler {
 	private final Integer MAXIMUM_TIMEOUT = 3600; //30000;
 	private Session session;
 	private Boolean shutdown = false;
+	private ChannelSftp sftpChannel;
 	
 	public SSHConnectionHandler(PowershellEmpireConnection pseConn){
 		this.pseConn = pseConn;
@@ -285,6 +293,10 @@ class SSHConnectionHandler {
 	
 	public Boolean isConnected(){
 		return session == null ? false : session.isConnected();
+	}
+	
+	public ChannelSftp getSFTPChannel(){
+		return sftpChannel;
 	}
 	
 	public void run() throws JSchException {
@@ -299,8 +311,15 @@ class SSHConnectionHandler {
 			session.connect(MAXIMUM_TIMEOUT);
 			session.setPortForwardingL(LOCAL_SERVICE_PORT, "localhost", this.pseConn.pseInfo.getPort());
 			
+			Channel channel = session.openChannel("sftp");
+            channel.connect();
+            sftpChannel = (ChannelSftp) channel;
+			
+            //sftpChannel.get("remotefile.txt", "localfile.txt");
+            
 			//http://stackoverflow.com/questions/2405885/any-good-jsch-examples/37067557#37067557
 			//http://stackoverflow.com/questions/17473398/java-sftp-upload-using-jsch-but-how-to-overwrite-the-current-file
+            //http://stackoverflow.com/questions/14617/java-what-is-the-best-way-to-sftp-a-file-from-a-server
 		} catch (JSchException e) {
 			//e.printStackTrace();
 			throw e;
@@ -309,5 +328,6 @@ class SSHConnectionHandler {
 	
 	public void stop(){
 		this.session.disconnect();
+		sftpChannel.exit();
 	}
 }

@@ -14,6 +14,10 @@ public class Model {
 	private PowershellEmpireInformations powershellEmpireInformations;
 	private PowershellEmpireConnection powershellEmpireConnection;
 	
+	private String actualLocalDirectory;
+	private String actualRemoteDirectory;
+	
+	
 	public Model(){
 	}
 
@@ -87,5 +91,21 @@ public class Model {
 	
 	public ServerResponse getListenerOptionsList(){
 		return this.listenerOptionsList;
+	}
+
+	public String getActualLocalDirectory() {
+		return actualLocalDirectory;
+	}
+
+	public void setActualLocalDirectory(String actualLocalDirectory) {
+		this.actualLocalDirectory = actualLocalDirectory;
+	}
+
+	public String getActualRemoteDirectory() {
+		return actualRemoteDirectory;
+	}
+
+	public void setActualRemoteDirectory(String actualRemoteDirectory) {
+		this.actualRemoteDirectory = actualRemoteDirectory;
 	}
 }

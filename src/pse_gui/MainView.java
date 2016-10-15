@@ -1,17 +1,25 @@
 package pse_gui;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.Map.Entry;
 
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpException;
+
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
@@ -51,6 +59,11 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnDelete;
 	@FXML Button btnReset;
 	@FXML Button btnSend;
+	@FXML TreeView<File> leftFileTree;
+	@FXML TreeView<File> rightFileTree;
+	@FXML BreadCrumbBar<File> leftFileBreadCrumb;
+	@FXML BreadCrumbBar<File> rightFileBreadCrumb;
+	
 	LoginView loginController;
 	private Stage loginStage = null;
 	
@@ -172,6 +185,39 @@ public class MainView implements ChangeListener<Object> {
 			
 		});
 		btnDelete.setDisable(true);
+		
+		leftFileBreadCrumb.setAutoNavigationEnabled(false);
+		leftFileBreadCrumb.selectedCrumbProperty().bind(leftFileTree.getSelectionModel().selectedItemProperty());
+		leftFileBreadCrumb.setOnCrumbAction(new EventHandler<BreadCrumbActionEvent<File>>() {
+
+			@Override
+			public void handle(BreadCrumbActionEvent<File> event) {
+				TreeItem<File> selectedCrumb = event.getSelectedCrumb();
+				if(selectedCrumb == leftFileTree.getRoot()) {
+					leftFileTree.getSelectionModel().select(leftFileTree.getRoot());
+				}
+				else {
+					leftFileTree.getSelectionModel().select(event.getSelectedCrumb());
+				}
+			}
+		});
+		rightFileBreadCrumb.setAutoNavigationEnabled(false);
+		rightFileBreadCrumb.selectedCrumbProperty().bind(rightFileTree.getSelectionModel().selectedItemProperty());
+		rightFileBreadCrumb.setOnCrumbAction(new EventHandler<BreadCrumbActionEvent<File>>() {
+
+			@Override
+			public void handle(BreadCrumbActionEvent<File> event) {
+				TreeItem<File> selectedCrumb = event.getSelectedCrumb();
+				if(selectedCrumb == rightFileTree.getRoot()) {
+					rightFileTree.getSelectionModel().select(rightFileTree.getRoot());
+				}
+				else {
+					rightFileTree.getSelectionModel().select(event.getSelectedCrumb());
+				}
+			}
+		});
+		
+		initialiseLocalFileBrowser();
     }
 	
 	private void initializeTreeView() {
@@ -281,6 +327,133 @@ public class MainView implements ChangeListener<Object> {
 		});
 	}
 
+	public void initialiseLocalFileBrowser() {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
+				TreeItem<File> leftFileTreeRoot;
+				try {
+					leftFileTreeRoot = createNode(new File("/"), null);
+					leftFileTree.setShowRoot(false);
+					leftFileTree.setRoot(leftFileTreeRoot);
+				} catch (SftpException e) {
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+				}
+			}
+		});
+		
+	}
+
+	public void initialiseRemoteFileBrowser() {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
+				TreeItem<File> rightFileTreeRoot;
+				rightFileTree.setShowRoot(false);
+				if(model.getPowershellEmpireConnection().isSSHConnected()) {
+					ChannelSftp sftpChann = model.getPowershellEmpireConnection().getSFTPChannel();
+					try {
+						rightFileTreeRoot = createNode(new File("/"), sftpChann);
+						rightFileTree.setRoot(rightFileTreeRoot);
+					} catch (SftpException e) {
+						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					}
+				}
+				else {
+					try {
+						rightFileTreeRoot = createNode(new File("/"), null);
+						rightFileTree.setRoot(rightFileTreeRoot);
+					} catch (SftpException e) {
+						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					}
+				}
+				
+			}
+		});
+		
+	}
+	
+	private TreeItem<File> createNode(final File f, ChannelSftp ifIsRemoteSftpChannel) throws SftpException {
+	    return new TreeItem<File>(f) {
+	        private boolean isLeaf;
+	        private boolean isFirstTimeChildren = true;
+	        private boolean isFirstTimeLeaf = true;
+	        private ChannelSftp IsRemoteSftpChannel = ifIsRemoteSftpChannel;
+	         
+	        @Override public ObservableList<TreeItem<File>> getChildren() {
+	            if (isFirstTimeChildren) {
+	                isFirstTimeChildren = false;
+	                super.getChildren().setAll(buildChildren(this));
+	            }
+	            return super.getChildren();
+	        }
+
+	        @Override public boolean isLeaf() {
+	            if (isFirstTimeLeaf) {
+	                isFirstTimeLeaf = false;
+	                File f = (File) getValue();
+	                isLeaf = f.isFile();
+	            }
+
+	            return isLeaf;
+	        }
+
+	        private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
+	            if (IsRemoteSftpChannel == null) {
+		        	File f = TreeItem.getValue();
+		            if (f != null && f.isDirectory()) {
+		                File[] files = f.listFiles();
+		                if (files != null) {
+		                    ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
+	
+		                    for (File childFile : files) {
+		                        try {
+									children.add(createNode(childFile, IsRemoteSftpChannel));
+								} catch (SftpException e) {
+									SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+								}
+		                    }
+	
+		                    return children;
+		                }
+		            }
+	
+		            return FXCollections.emptyObservableList();
+	            }
+	            else {
+	            	try {
+	            		String toLS = TreeItem.getValue().getAbsolutePath();
+	            		IsRemoteSftpChannel.cd(toLS);
+		            	Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
+		            	LsEntry f = (LsEntry) v.get(0);
+			            if (f != null && f.getAttrs().isDir()) {
+			                //File[] files = f.listFiles();
+			                if (v.size() > 1) {
+			                    ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
+		
+			                    for (int i = 0; i < v.size(); i++) {
+			                        	String fileName = ((LsEntry)v.get(i)).getFilename();
+			                        	String completeFileName = IsRemoteSftpChannel.realpath(fileName);
+			                        	if (!fileName.equals(".") && !fileName.equals(".."))
+			                        		children.add(createNode(new File(completeFileName), IsRemoteSftpChannel));
+									
+			                    }
+		
+			                    return children;
+			                }
+			            }
+	            	} catch (SftpException e) {
+						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					}
+	
+		            return FXCollections.emptyObservableList();
+	            }
+	        }
+	    };
+	}
+	
 	public void onBtnConnectClick() {
 		try {
 			if(loginStage == null) {
@@ -338,6 +511,8 @@ public class MainView implements ChangeListener<Object> {
 											handler.getModules();
 											handler.getListeners();
 											handler.getListenerOptions();
+											//handler.initialiseFileHandler();
+											initialiseRemoteFileBrowser();
 										}
 										catch(Exception e) {
 											e.printStackTrace();
@@ -783,5 +958,6 @@ public class MainView implements ChangeListener<Object> {
 	public void setRequestHandler(RequestHandler handler) {
 		this.handler = handler;
 	}
+
 	
 }

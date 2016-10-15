@@ -2,6 +2,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.control.BreadCrumbBar?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
 
 <BorderPane prefHeight="400.0"
 		    prefWidth="600.0"
@@ -28,70 +30,112 @@
 
 	<!-- Top center (left and right panel) -->
 	<center>
-		<SplitPane fx:id="horizontalSplitPane" 
-				   orientation="horizontal"
-				   styleClass="splitPane">
-		<VBox fx:id="leftContainer"  
-			  styleClass="container">
-		<Label text="Empire components" 
-			   styleClass="boldLabel"/>
-         <TreeView fx:id="tree" 
-         		   VBox.vgrow="always"
-		           showRoot="false">
-          <cellFactory></cellFactory>
-          </TreeView>
-          </VBox>
-          <AnchorPane fx:id="rightContainer">
-	          <SplitPane fx:id="verticalSplitPane"
-	          		     orientation="vertical"   
-	          		     styleClass="noBorderSplitPane"      
-	          		     AnchorPane.topAnchor="0.0" 
-			             AnchorPane.bottomAnchor="0.0"
-			             AnchorPane.leftAnchor="0.0" 
-			             AnchorPane.rightAnchor="0.0">
-			             
-	          	<VBox fx:id="centerContainer">
-		          	<HBox styleClass="breadCrumbContainer">
-		          		<BreadCrumbBar fx:id="breadCrumb"/>
-		          	</HBox>
-		          	<ScrollPane fitToHeight="true" VBox.vgrow="always">
-			          	<VBox fx:id="content" 
-			          	      styleClass="container"
-			          	      VBox.vgrow="always"/>
-			        </ScrollPane>
-	          	</VBox>
-	          	
-	          	<HBox fx:id="bottomContainer" 
-	          		  styleClass="bottomPane">
-	          		<VBox HBox.hgrow="always">
-		          		<Label text="Past events"
-		          			   styleClass="boldLabel"/>
-	          			<TextArea fx:id="logTextArea" 
-			          			  text=""
-			          			  editable="false"
-			          			  VBox.vgrow="always"/>
-		          	</VBox>
-
-          			<VBox fx:id="buttonsContainer" 
-          				  styleClass="bottomPane">
-	          			<Button fx:id="btnSend"
-	          					text="Send"
-	          					styleClass="button-raised"
-			          			onAction="#onBtnSendClick"/>
-	          			<Button fx:id="btnReset"
-	          					text="Reset" 
-	          					styleClass="button-raised"
-			          			onAction="#onBtnResetClick"/>
-			          	<Button fx:id="btnDelete"
-			          			text="Delete" 
-	          					styleClass="button-raised"
-			          			onAction="#onBtnDeleteClick"/>
-          			</VBox>
-	          	</HBox>
-	          </SplitPane>
-		  </AnchorPane>
-		</SplitPane>
-
+		<TabPane >
+			<Tab closable="false"
+					text="Empire API Controller">
+				<SplitPane fx:id="horizontalSplitPane" 
+						   orientation="horizontal"
+						   styleClass="splitPane">
+				<VBox fx:id="leftContainer"  
+					  styleClass="container">
+				<Label text="Empire components" 
+					   styleClass="boldLabel"/>
+		         <TreeView fx:id="tree" 
+		         		   VBox.vgrow="always"
+				           showRoot="false">
+		          <cellFactory></cellFactory>
+		          </TreeView>
+		          </VBox>
+		          <AnchorPane fx:id="rightContainer">
+			          <SplitPane fx:id="verticalSplitPane"
+			          		     orientation="vertical"   
+			          		     styleClass="noBorderSplitPane"      
+			          		     AnchorPane.topAnchor="0.0" 
+					             AnchorPane.bottomAnchor="0.0"
+					             AnchorPane.leftAnchor="0.0" 
+					             AnchorPane.rightAnchor="0.0">
+					             
+			          	<VBox fx:id="centerContainer">
+				          	<HBox styleClass="breadCrumbContainer">
+				          		<BreadCrumbBar fx:id="breadCrumb"/>
+				          	</HBox>
+				          	<ScrollPane fitToHeight="true" VBox.vgrow="always">
+					          	<VBox fx:id="content" 
+					          	      styleClass="container"
+					          	      VBox.vgrow="always"/>
+					        </ScrollPane>
+			          	</VBox>
+			          	
+			          	<HBox fx:id="bottomContainer" 
+			          		  styleClass="bottomPane">
+			          		<VBox HBox.hgrow="always">
+				          		<Label text="Past events"
+				          			   styleClass="boldLabel"/>
+			          			<TextArea fx:id="logTextArea" 
+					          			  text=""
+					          			  editable="false"
+					          			  VBox.vgrow="always"/>
+				          	</VBox>
+		
+		          			<VBox fx:id="buttonsContainer" 
+		          				  styleClass="bottomPane">
+			          			<Button fx:id="btnSend"
+			          					text="Send"
+			          					styleClass="button-raised"
+					          			onAction="#onBtnSendClick"/>
+			          			<Button fx:id="btnReset"
+			          					text="Reset" 
+			          					styleClass="button-raised"
+					          			onAction="#onBtnResetClick"/>
+					          	<Button fx:id="btnDelete"
+					          			text="Delete" 
+			          					styleClass="button-raised"
+					          			onAction="#onBtnDeleteClick"/>
+		          			</VBox>
+			          	</HBox>
+			          </SplitPane>
+				  </AnchorPane>
+				</SplitPane>
+			</Tab>
+			<Tab closable="false" text="Files">
+				<SplitPane fx:id="filesHorizontalSplitPane" 
+						   orientation="horizontal"
+						   styleClass="splitPane">
+						   
+						<VBox fx:id="leftFileContainer">
+				          	<HBox styleClass="breadCrumbContainer">
+				          		<BreadCrumbBar fx:id="leftFileBreadCrumb"/>
+				          	</HBox>
+				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
+					          	<VBox fx:id="leftFilecontent" 
+					          	      styleClass="container"
+					          	      VBox.vgrow="always">
+				          	    	<TreeView fx:id="leftFileTree" 
+					         		   VBox.vgrow="always"
+							           showRoot="false">
+							        </TreeView>
+					            </VBox>
+					        </ScrollPane>
+			          	</VBox>
+			          	
+			          	<VBox fx:id="rightFileContainer">
+				          	<HBox styleClass="breadCrumbContainer">
+				          		<BreadCrumbBar fx:id="rightFileBreadCrumb"/>
+				          	</HBox>
+				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
+					          	<VBox fx:id="rightFilecontent" 
+					          	      styleClass="container"
+					          	      VBox.vgrow="always">
+					          	    <TreeView fx:id="rightFileTree" 
+					         		   VBox.vgrow="always"
+							           showRoot="false">
+							   		</TreeView>
+							   </VBox>
+					        </ScrollPane>
+			          	</VBox>
+			   </SplitPane>
+			</Tab>
+		</TabPane>
 	</center>
 	
 </BorderPane>

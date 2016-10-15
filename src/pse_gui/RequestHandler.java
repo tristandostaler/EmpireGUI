@@ -1,8 +1,12 @@
 package pse_gui;
+import java.io.File;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
+import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
 
 
 public class RequestHandler {
@@ -162,5 +166,48 @@ public class RequestHandler {
 		JSON json = syntaxAnalyzer.userRequestToJson(this.model.getUserRequest());
 		Communication comm = new Communication(this.model.getUserRequest().getMethod(), this.model.getUserRequest().getEndpoint(), handler, json);
 		this.model.getPowershellEmpireConnection().send(comm);
+	}
+	
+	/*public void initialiseFileHandler(){
+		if(this.model.getPowershellEmpireConnection().isSSHConnected()) {
+			ChannelSftp sftpChann = this.model.getPowershellEmpireConnection().getSFTPChannel();
+			try {
+				this.model.setActualRemoteDirectory(sftpChann.pwd());
+				this.model.setActualLocalDirectory(Paths.get(".").toAbsolutePath().normalize().toString());
+				System.out.println(sftpChann.pwd());
+				System.out.println(sftpChann.lpwd());
+				System.out.println(sftpChann.ls(sftpChann.pwd()));
+				
+				String dirPath = sftpChann.lpwd();
+				File dir = new File(dirPath);
+				String[] files = dir.list();
+				if (files.length == 0) {
+				    System.out.println("The directory is empty");
+				} else {
+				    for (String aFile : files) {
+				        System.out.println(aFile);
+				    }
+				}
+				
+			} catch (SftpException e) {
+				SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+			}
+		}
+		else {
+			this.model.setActualRemoteDirectory(Paths.get(".").toAbsolutePath().normalize().toString());
+			this.model.setActualLocalDirectory(Paths.get(".").toAbsolutePath().normalize().toString());
+		}
+		this.ui.notifyLocalFileUpdated();
+		this.ui.notifyRemoteFileUpdated();
+	}*/
+	
+	public void getServerFiles(String directory){
+		if(this.model.getPowershellEmpireConnection().isSSHConnected()) {
+			ChannelSftp sftpChann = this.model.getPowershellEmpireConnection().getSFTPChannel();
+			
+		}
+		else {
+			
+		}
 	}
 }
