@@ -118,6 +118,10 @@
 								    text="Upload"
 									styleClass="button-raised"
 								    onAction="#onBtnUploadClick"/>
+								    <Button
+								    text="Create a directory"
+									styleClass="button-raised"
+								    onAction="#onBtnCreateLeftClick"/>
 					        </HBox>
 			          	</VBox>
 			          	
@@ -139,6 +143,14 @@
 								    text="Download"
 									styleClass="button-raised"
 								    onAction="#onBtnDownloadClick"/>
+								<Button
+								    text="Download and Open"
+									styleClass="button-raised"
+								    onAction="#onBtnDownloadAndOpenClick"/>
+							    <Button
+								    text="Create a directory"
+									styleClass="button-raised"
+								    onAction="#onBtnCreateRightClick"/>
 					        </HBox>
 			          	</VBox>
 			   </SplitPane>

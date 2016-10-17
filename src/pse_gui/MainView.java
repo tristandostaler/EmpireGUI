@@ -3,7 +3,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
@@ -16,6 +15,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpException;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -42,7 +42,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import pse_gui.MainView.KillAgentResponseHandler;
 
 public class MainView implements ChangeListener<Object> {
 
@@ -59,10 +58,10 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnDelete;
 	@FXML Button btnReset;
 	@FXML Button btnSend;
-	@FXML TreeView<File> leftFileTree;
-	@FXML TreeView<File> rightFileTree;
-	@FXML BreadCrumbBar<File> leftFileBreadCrumb;
-	@FXML BreadCrumbBar<File> rightFileBreadCrumb;
+	@FXML TreeView<ModifiedFile> leftFileTree;
+	@FXML TreeView<ModifiedFile> rightFileTree;
+	@FXML BreadCrumbBar<ModifiedFile> leftFileBreadCrumb;
+	@FXML BreadCrumbBar<ModifiedFile> rightFileBreadCrumb;
 	
 	LoginView loginController;
 	private Stage loginStage = null;
@@ -188,11 +187,11 @@ public class MainView implements ChangeListener<Object> {
 		
 		leftFileBreadCrumb.setAutoNavigationEnabled(false);
 		leftFileBreadCrumb.selectedCrumbProperty().bind(leftFileTree.getSelectionModel().selectedItemProperty());
-		leftFileBreadCrumb.setOnCrumbAction(new EventHandler<BreadCrumbActionEvent<File>>() {
+		leftFileBreadCrumb.setOnCrumbAction(new EventHandler<BreadCrumbActionEvent<ModifiedFile>>() {
 
 			@Override
-			public void handle(BreadCrumbActionEvent<File> event) {
-				TreeItem<File> selectedCrumb = event.getSelectedCrumb();
+			public void handle(BreadCrumbActionEvent<ModifiedFile> event) {
+				TreeItem<ModifiedFile> selectedCrumb = event.getSelectedCrumb();
 				if(selectedCrumb == leftFileTree.getRoot()) {
 					leftFileTree.getSelectionModel().select(leftFileTree.getRoot());
 				}
@@ -203,11 +202,11 @@ public class MainView implements ChangeListener<Object> {
 		});
 		rightFileBreadCrumb.setAutoNavigationEnabled(false);
 		rightFileBreadCrumb.selectedCrumbProperty().bind(rightFileTree.getSelectionModel().selectedItemProperty());
-		rightFileBreadCrumb.setOnCrumbAction(new EventHandler<BreadCrumbActionEvent<File>>() {
+		rightFileBreadCrumb.setOnCrumbAction(new EventHandler<BreadCrumbActionEvent<ModifiedFile>>() {
 
 			@Override
-			public void handle(BreadCrumbActionEvent<File> event) {
-				TreeItem<File> selectedCrumb = event.getSelectedCrumb();
+			public void handle(BreadCrumbActionEvent<ModifiedFile> event) {
+				TreeItem<ModifiedFile> selectedCrumb = event.getSelectedCrumb();
 				if(selectedCrumb == rightFileTree.getRoot()) {
 					rightFileTree.getSelectionModel().select(rightFileTree.getRoot());
 				}
@@ -243,7 +242,7 @@ public class MainView implements ChangeListener<Object> {
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
+						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 						e.printStackTrace();
 					}
 				}
@@ -259,7 +258,7 @@ public class MainView implements ChangeListener<Object> {
 					initializeTreeView();
 					refreshTreeBranch(agentsItem, model.getAgentList().getValue());
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
 				}
 			}
@@ -274,7 +273,7 @@ public class MainView implements ChangeListener<Object> {
 					initializeTreeView();
 					refreshTreeBranch(listenersItem, model.getListenerList().getValue());
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
 				}
 			}
@@ -290,7 +289,7 @@ public class MainView implements ChangeListener<Object> {
 					refreshTreeBranch(listenersItem, model.getListenerOptionsList().getValue());
 					//addTreeItem(CREATE_LISTENER_STRING, (HashMap<String, Object>)model.getListenerOptionsList().getValue(), listenersItem);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
 				}
 			}
@@ -305,7 +304,7 @@ public class MainView implements ChangeListener<Object> {
 					initializeTreeView();
 					refreshTreeBranch(modulesItem, model.getModuleList().getValue());
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
 				}
 			}
@@ -320,7 +319,7 @@ public class MainView implements ChangeListener<Object> {
 					initializeTreeView();
 					refreshTreeBranch(stagersItem, model.getStagerList().getValue());
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
 				}
 			}
@@ -332,9 +331,9 @@ public class MainView implements ChangeListener<Object> {
 			@Override
 			public void run() {
 				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
-				TreeItem<File> leftFileTreeRoot;
+				TreeItem<ModifiedFile> leftFileTreeRoot;
 				try {
-					leftFileTreeRoot = createNode(new File("/"), null);
+					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree);
 					leftFileTree.setShowRoot(false);
 					leftFileTree.setRoot(leftFileTreeRoot);
 				} catch (SftpException e) {
@@ -350,12 +349,12 @@ public class MainView implements ChangeListener<Object> {
 			@Override
 			public void run() {
 				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
-				TreeItem<File> rightFileTreeRoot;
+				TreeItem<ModifiedFile> rightFileTreeRoot;
 				rightFileTree.setShowRoot(false);
 				if(model.getPowershellEmpireConnection().isSSHConnected()) {
 					ChannelSftp sftpChann = model.getPowershellEmpireConnection().getSFTPChannel();
 					try {
-						rightFileTreeRoot = createNode(new File("/"), sftpChann);
+						rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree);
 						rightFileTree.setRoot(rightFileTreeRoot);
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -363,7 +362,7 @@ public class MainView implements ChangeListener<Object> {
 				}
 				else {
 					try {
-						rightFileTreeRoot = createNode(new File("/"), null);
+						rightFileTreeRoot = createNode(new ModifiedFile("/"), null, rightFileTree);
 						rightFileTree.setRoot(rightFileTreeRoot);
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -375,14 +374,15 @@ public class MainView implements ChangeListener<Object> {
 		
 	}
 	
-	private TreeItem<File> createNode(final File f, ChannelSftp ifIsRemoteSftpChannel) throws SftpException {
-	    return new TreeItem<File>(f) {
+	private TreeItem<ModifiedFile> createNode(final ModifiedFile f, ChannelSftp ifIsRemoteSftpChannel, TreeView<ModifiedFile> root) throws SftpException {
+		TreeItem<ModifiedFile> toReturn =  new TreeItem<ModifiedFile>(f) {
 	        private boolean isLeaf;
 	        private boolean isFirstTimeChildren = true;
 	        private boolean isFirstTimeLeaf = true;
 	        private ChannelSftp IsRemoteSftpChannel = ifIsRemoteSftpChannel;
-	         
-	        @Override public ObservableList<TreeItem<File>> getChildren() {
+	        
+	        @Override 
+	        public ObservableList<TreeItem<ModifiedFile>> getChildren() {
 	            if (isFirstTimeChildren) {
 	                isFirstTimeChildren = false;
 	                super.getChildren().setAll(buildChildren(this));
@@ -390,7 +390,8 @@ public class MainView implements ChangeListener<Object> {
 	            return super.getChildren();
 	        }
 
-	        @Override public boolean isLeaf() {
+	        @Override 
+	        public boolean isLeaf() {
 	            if (isFirstTimeLeaf) {
 	                isFirstTimeLeaf = false;
 	                File f = (File) getValue();
@@ -400,17 +401,18 @@ public class MainView implements ChangeListener<Object> {
 	            return isLeaf;
 	        }
 
-	        private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
-	            if (IsRemoteSftpChannel == null) {
+	        private ObservableList<TreeItem<ModifiedFile>> buildChildren(TreeItem<ModifiedFile> TreeItem) {
+	        	if (IsRemoteSftpChannel == null) {
 		        	File f = TreeItem.getValue();
 		            if (f != null && f.isDirectory()) {
 		                File[] files = f.listFiles();
 		                if (files != null) {
-		                    ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
+		                    ObservableList<TreeItem<ModifiedFile>> children = FXCollections.observableArrayList();
 	
 		                    for (File childFile : files) {
+		                    	ModifiedFile mChildFile = new ModifiedFile(childFile.getAbsolutePath());
 		                        try {
-									children.add(createNode(childFile, IsRemoteSftpChannel));
+									children.add(createNode(mChildFile, IsRemoteSftpChannel, root));
 								} catch (SftpException e) {
 									SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 								}
@@ -424,22 +426,24 @@ public class MainView implements ChangeListener<Object> {
 	            }
 	            else {
 	            	try {
-	            		String toLS = TreeItem.getValue().getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("/", "/");
-	            		if (TreeItem.getValue().isDirectory())
-	            			IsRemoteSftpChannel.cd(toLS);
-		            	@SuppressWarnings("unchecked")
+	            		String toLS = TreeItem.getValue().getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("\\\\", "/");
+	            		
+	            		IsRemoteSftpChannel.cd(toLS);
+		            	
+	            		@SuppressWarnings("unchecked")
 						Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
-		            	LsEntry f = (LsEntry) v.get(0);
+		            	
+	            		LsEntry f = (LsEntry) v.get(0);
 			            if (f != null && f.getAttrs().isDir()) {
 			                //File[] files = f.listFiles();
 			                if (v.size() > 1) {
-			                    ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
+			                    ObservableList<TreeItem<ModifiedFile>> children = FXCollections.observableArrayList();
 		
 			                    for (int i = 0; i < v.size(); i++) {
 			                        	String fileName = ((LsEntry)v.get(i)).getFilename();
 			                        	String completeFileName = IsRemoteSftpChannel.realpath(fileName);
 			                        	if (!fileName.equals(".") && !fileName.equals(".."))
-			                        		children.add(createNode(new File(completeFileName), IsRemoteSftpChannel));
+			                        		children.add(createNode(new ModifiedFile(completeFileName, ((LsEntry)v.get(i))), IsRemoteSftpChannel, root));
 									
 			                    }
 		
@@ -454,6 +458,21 @@ public class MainView implements ChangeListener<Object> {
 	            }
 	        }
 	    };
+	    
+	    toReturn.expandedProperty().addListener(new ChangeListener<Boolean>() {
+	        @Override
+	        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+	            //System.out.println("newValue = " + newValue);
+	            BooleanProperty bb = (BooleanProperty) observable;
+	            //System.out.println("bb.getBean() = " + bb.getBean());
+	            @SuppressWarnings("unchecked")
+				TreeItem<ModifiedFile> t = (TreeItem<ModifiedFile>) bb.getBean();
+	            // Do whatever with t
+	            root.getSelectionModel().select(t);
+	        }
+	    });
+	    
+	    return toReturn;
 	}
 	
 	public void onBtnConnectClick() {
@@ -518,6 +537,7 @@ public class MainView implements ChangeListener<Object> {
 										}
 										catch(Exception e) {
 											e.printStackTrace();
+											SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 										}
 									}
 									else{
@@ -526,7 +546,7 @@ public class MainView implements ChangeListener<Object> {
 
 									return null;
 								} catch (Exception e) {
-									// TODO Auto-generated catch block
+									SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 									e.printStackTrace();
 									return null;
 								}
@@ -559,7 +579,7 @@ public class MainView implements ChangeListener<Object> {
 								logTextArea.appendText("> SSH port: " + sshInfos.getPort() + "\n");
 							}
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
+							SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 							e.printStackTrace();
 						}
 						
@@ -576,7 +596,7 @@ public class MainView implements ChangeListener<Object> {
 							Alert alert = new Alert(AlertType.ERROR, "Could not establish a connection.", ButtonType.OK);
 							alert.showAndWait();
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
+							SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 							e.printStackTrace();
 						}
 					}
@@ -591,7 +611,7 @@ public class MainView implements ChangeListener<Object> {
 							loginController.setIsLoading(true);
 							backgroundThread.restart();
 						} catch (Exception e1) {
-							// TODO Auto-generated catch block
+							SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e1.getMessage(), e1);
 							e1.printStackTrace();
 						}
 					}
@@ -618,7 +638,20 @@ public class MainView implements ChangeListener<Object> {
 		
 	}
 	
+	public void onBtnDownloadAndOpenClick(){
+		onBtnDownloadClick();
+		//Open
+	}
+	
 	public void onBtnDownloadClick() {
+		
+	}
+	
+	public void onBtnCreateLeftClick() {
+		
+	}
+	
+	public void onBtnCreateRightClick() {
 		
 	}
 	
@@ -792,7 +825,7 @@ public class MainView implements ChangeListener<Object> {
 	    				btnConnect.setText("Connect");
 	    			}
 	    		} catch (Exception e) {
-	    			// TODO Auto-generated catch block
+	    			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 	    			e.printStackTrace();
 	    		}
 	        }
@@ -800,7 +833,6 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	private void refreshMainContent(MapTreeItem item) {
-		// TODO
 		content.getChildren().clear();
 		btnReset.setDisable(true);
 		btnSend.setDisable(true);
@@ -970,4 +1002,34 @@ public class MainView implements ChangeListener<Object> {
 	}
 
 	
+	public class ModifiedFile extends File{
+
+		LsEntry associatedLsEntry = null;
+		
+		public ModifiedFile(File parent, String child) {
+			super(parent, child);
+		}
+
+		public ModifiedFile(String pathname) {
+			super(pathname);
+		}
+		
+		public ModifiedFile(String pathname, LsEntry associatedLsEntry) {
+			super(pathname);
+			this.associatedLsEntry = associatedLsEntry;
+		}
+		
+		@Override
+		public String toString(){
+			return this.getName();
+		}
+		
+		@Override 
+		public boolean isFile() {
+			if (associatedLsEntry == null)
+				return super.isFile();
+			else
+				return !associatedLsEntry.getAttrs().isDir();
+		}
+	}
 }
