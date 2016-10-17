@@ -1004,6 +1004,10 @@ public class MainView implements ChangeListener<Object> {
 	
 	public class ModifiedFile extends File{
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6911723256878106196L;
 		LsEntry associatedLsEntry = null;
 		
 		public ModifiedFile(File parent, String child) {
