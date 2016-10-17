@@ -183,6 +183,7 @@ public class MainView implements ChangeListener<Object> {
 				else {
 					tree.getSelectionModel().select(event.getSelectedCrumb());
 				}
+				tree.scrollTo(tree.getSelectionModel().getSelectedIndex());
 			}
 			
 		});
@@ -201,6 +202,7 @@ public class MainView implements ChangeListener<Object> {
 				else {
 					leftFileTree.getSelectionModel().select(event.getSelectedCrumb());
 				}
+				leftFileTree.scrollTo(leftFileTree.getSelectionModel().getSelectedIndex());
 			}
 		});
 		rightFileBreadCrumb.setAutoNavigationEnabled(false);
@@ -216,6 +218,7 @@ public class MainView implements ChangeListener<Object> {
 				else {
 					rightFileTree.getSelectionModel().select(event.getSelectedCrumb());
 				}
+				rightFileTree.scrollTo(rightFileTree.getSelectionModel().getSelectedIndex());
 			}
 		});
 		
