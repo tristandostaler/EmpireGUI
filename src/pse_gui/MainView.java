@@ -424,8 +424,9 @@ public class MainView implements ChangeListener<Object> {
 	            }
 	            else {
 	            	try {
-	            		String toLS = TreeItem.getValue().getAbsolutePath();
-	            		IsRemoteSftpChannel.cd(toLS);
+	            		String toLS = TreeItem.getValue().getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("/", "/");
+	            		if (TreeItem.getValue().isDirectory())
+	            			IsRemoteSftpChannel.cd(toLS);
 		            	Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
 		            	LsEntry f = (LsEntry) v.get(0);
 			            if (f != null && f.getAttrs().isDir()) {
