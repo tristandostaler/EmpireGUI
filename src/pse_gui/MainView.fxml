@@ -31,7 +31,6 @@
 	<!-- Top center (left and right panel) -->
 	<center>
 		<TabPane >
-		<!-- API Controller tab -->
 			<Tab closable="false"
 					text="Empire API Controller">
 				<SplitPane fx:id="horizontalSplitPane" 
@@ -47,7 +46,7 @@
 		          <cellFactory></cellFactory>
 		          </TreeView>
 		          </VBox>
-		          <AnchorPane>
+		          <AnchorPane fx:id="rightContainer">
 			          <SplitPane fx:id="verticalSplitPane"
 			          		     orientation="vertical"   
 			          		     styleClass="noBorderSplitPane"      
@@ -56,7 +55,7 @@
 					             AnchorPane.leftAnchor="0.0" 
 					             AnchorPane.rightAnchor="0.0">
 					             
-			          	<VBox>
+			          	<VBox fx:id="centerContainer">
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="breadCrumb"/>
 				          	</HBox>
@@ -78,7 +77,8 @@
 					          			  VBox.vgrow="always"/>
 				          	</VBox>
 		
-		          			<VBox styleClass="bottomPane">
+		          			<VBox fx:id="buttonsContainer" 
+		          				  styleClass="bottomPane">
 			          			<Button fx:id="btnSend"
 			          					text="Send"
 			          					styleClass="button-raised"
@@ -97,17 +97,18 @@
 				  </AnchorPane>
 				</SplitPane>
 			</Tab>
-			<!-- File control tab -->
 			<Tab closable="false" text="Files">
-				<SplitPane orientation="horizontal"
+				<SplitPane fx:id="filesHorizontalSplitPane" 
+						   orientation="horizontal"
 						   styleClass="splitPane">
 						   
-						<VBox>
+						<VBox fx:id="leftFileContainer">
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="leftFileBreadCrumb"/>
 				          	</HBox>
 				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
-					          	<VBox styleClass="container"
+					          	<VBox fx:id="leftFilecontent" 
+					          	      styleClass="container"
 					          	      VBox.vgrow="always">
 				          	    	<TreeView fx:id="leftFileTree" 
 					         		   VBox.vgrow="always"
@@ -115,20 +116,15 @@
 							        </TreeView>
 					            </VBox>
 					        </ScrollPane>
-					        <HBox styleClass="breadCrumbContainer">
-						        <Button
-								    text="Upload"
-									styleClass="button-raised"
-								    onAction="#onBtnUploadClick"/>
-					        </HBox>
 			          	</VBox>
 			          	
-			          	<VBox >
+			          	<VBox fx:id="rightFileContainer">
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="rightFileBreadCrumb"/>
 				          	</HBox>
 				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
-					          	<VBox styleClass="container"
+					          	<VBox fx:id="rightFilecontent" 
+					          	      styleClass="container"
 					          	      VBox.vgrow="always">
 					          	    <TreeView fx:id="rightFileTree" 
 					         		   VBox.vgrow="always"
@@ -136,13 +132,6 @@
 							   		</TreeView>
 							   </VBox>
 					        </ScrollPane>
-					        
-					        <HBox styleClass="breadCrumbContainer">
-					        	<Button
-								    text="Download"
-									styleClass="button-raised"
-								    onAction="#onBtnDownloadClick"/>
-					        </HBox>
 			          	</VBox>
 			   </SplitPane>
 			</Tab>

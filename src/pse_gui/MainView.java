@@ -382,8 +382,7 @@ public class MainView implements ChangeListener<Object> {
 	        private boolean isFirstTimeLeaf = true;
 	        private ChannelSftp IsRemoteSftpChannel = ifIsRemoteSftpChannel;
 	         
-	        @Override
-	        public ObservableList<TreeItem<File>> getChildren() {
+	        @Override public ObservableList<TreeItem<File>> getChildren() {
 	            if (isFirstTimeChildren) {
 	                isFirstTimeChildren = false;
 	                super.getChildren().setAll(buildChildren(this));
@@ -391,8 +390,7 @@ public class MainView implements ChangeListener<Object> {
 	            return super.getChildren();
 	        }
 
-	        @Override
-	        public boolean isLeaf() {
+	        @Override public boolean isLeaf() {
 	            if (isFirstTimeLeaf) {
 	                isFirstTimeLeaf = false;
 	                File f = (File) getValue();
@@ -427,13 +425,9 @@ public class MainView implements ChangeListener<Object> {
 	            else {
 	            	try {
 	            		String toLS = TreeItem.getValue().getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("/", "/");
-	            		
 	            		if (TreeItem.getValue().isDirectory())
 	            			IsRemoteSftpChannel.cd(toLS);
-	            		
-		            	@SuppressWarnings("unchecked")
-						Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
-		            	
+		            	Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
 		            	LsEntry f = (LsEntry) v.get(0);
 			            if (f != null && f.getAttrs().isDir()) {
 			                //File[] files = f.listFiles();
@@ -617,14 +611,6 @@ public class MainView implements ChangeListener<Object> {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public void onBtnUploadClick() {
-		
-	}
-	
-	public void onBtnDownloadClick() {
-		
 	}
 
 	private void makeDisconnectAction(){
