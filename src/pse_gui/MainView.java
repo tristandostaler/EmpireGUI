@@ -94,6 +94,9 @@ public class MainView implements ChangeListener<Object> {
 	
 	private ItemType deleteType;
 	
+	private ArrayList<TreeItem<ModifiedFile>> leftFileHome = new ArrayList<TreeItem<ModifiedFile>>();
+	private ArrayList<TreeItem<ModifiedFile>> rightFileHome = new ArrayList<TreeItem<ModifiedFile>>();
+	
 	public MainView() {
 		uiObjectCreator = new UIObjectCreator();
 	}
@@ -333,9 +336,12 @@ public class MainView implements ChangeListener<Object> {
 				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
 				TreeItem<ModifiedFile> leftFileTreeRoot;
 				try {
-					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree);
+					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree, System.getProperty("user.home"));
 					leftFileTree.setShowRoot(false);
 					leftFileTree.setRoot(leftFileTreeRoot);
+					for (int i = 0; i < leftFileHome.size(); i++) {
+						leftFileHome.get(i).setExpanded(true);
+					}
 				} catch (SftpException e) {
 					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 				}
@@ -354,7 +360,7 @@ public class MainView implements ChangeListener<Object> {
 				if(model.getPowershellEmpireConnection().isSSHConnected()) {
 					ChannelSftp sftpChann = model.getPowershellEmpireConnection().getSFTPChannel();
 					try {
-						rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree);
+						rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree, "/tmp");
 						rightFileTree.setRoot(rightFileTreeRoot);
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -362,19 +368,21 @@ public class MainView implements ChangeListener<Object> {
 				}
 				else {
 					try {
-						rightFileTreeRoot = createNode(new ModifiedFile("/"), null, rightFileTree);
+						rightFileTreeRoot = createNode(new ModifiedFile("/"), null, rightFileTree, "/tmp");
 						rightFileTree.setRoot(rightFileTreeRoot);
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					}
 				}
-				
+				for (int i = 0; i < rightFileHome.size(); i++) {
+					rightFileHome.get(i).setExpanded(true);
+				}
 			}
 		});
 		
 	}
 	
-	private TreeItem<ModifiedFile> createNode(final ModifiedFile f, ChannelSftp ifIsRemoteSftpChannel, TreeView<ModifiedFile> root) throws SftpException {
+	private TreeItem<ModifiedFile> createNode(final ModifiedFile f, ChannelSftp ifIsRemoteSftpChannel, TreeView<ModifiedFile> root, String toBeSelected) throws SftpException {
 		TreeItem<ModifiedFile> toReturn =  new TreeItem<ModifiedFile>(f) {
 	        private boolean isLeaf;
 	        private boolean isFirstTimeChildren = true;
@@ -411,8 +419,11 @@ public class MainView implements ChangeListener<Object> {
 	
 		                    for (File childFile : files) {
 		                    	ModifiedFile mChildFile = new ModifiedFile(childFile.getAbsolutePath());
-		                        try {
-									children.add(createNode(mChildFile, IsRemoteSftpChannel, root));
+		                    	try {
+		                    		TreeItem<ModifiedFile> Node = createNode(mChildFile, IsRemoteSftpChannel, root, toBeSelected); //TODO
+									children.add(Node);
+									if (toBeSelected.contains(mChildFile.getAbsolutePath()))
+										leftFileHome.add(Node);
 								} catch (SftpException e) {
 									SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 								}
@@ -443,8 +454,12 @@ public class MainView implements ChangeListener<Object> {
 			                        	String fileName = ((LsEntry)v.get(i)).getFilename();
 			                        	String completeFileName = IsRemoteSftpChannel.realpath(fileName);
 			                        	if (!fileName.equals(".") && !fileName.equals(".."))
-			                        		children.add(createNode(new ModifiedFile(completeFileName, ((LsEntry)v.get(i))), IsRemoteSftpChannel, root));
-									
+			                        	{
+			                        		TreeItem<ModifiedFile> Node = createNode(new ModifiedFile(completeFileName, ((LsEntry)v.get(i))), IsRemoteSftpChannel, root, toBeSelected);
+			                        		children.add(Node);
+			                        		if (toBeSelected.contains(completeFileName))
+					                    		rightFileHome.add(Node);
+			                        	}
 			                    }
 		
 			                    return children;
@@ -469,6 +484,7 @@ public class MainView implements ChangeListener<Object> {
 				TreeItem<ModifiedFile> t = (TreeItem<ModifiedFile>) bb.getBean();
 	            // Do whatever with t
 	            root.getSelectionModel().select(t);
+	            root.scrollTo(root.getSelectionModel().getSelectedIndex());
 	        }
 	    });
 	    
@@ -635,7 +651,8 @@ public class MainView implements ChangeListener<Object> {
 	}
 
 	public void onBtnUploadClick() {
-		
+		TreeItem<ModifiedFile> t = leftFileTree.getSelectionModel().getSelectedItem();
+		System.out.println(t.getValue().getAbsolutePath());
 	}
 	
 	public void onBtnDownloadAndOpenClick(){
@@ -644,7 +661,8 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public void onBtnDownloadClick() {
-		
+		TreeItem<ModifiedFile> t = rightFileTree.getSelectionModel().getSelectedItem();
+		System.out.println(t.getValue().getAbsolutePath());
 	}
 	
 	public void onBtnCreateLeftClick() {
