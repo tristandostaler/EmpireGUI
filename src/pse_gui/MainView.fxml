@@ -46,7 +46,7 @@
 		          <cellFactory></cellFactory>
 		          </TreeView>
 		          </VBox>
-		          <AnchorPane fx:id="rightContainer">
+		          <AnchorPane>
 			          <SplitPane fx:id="verticalSplitPane"
 			          		     orientation="vertical"   
 			          		     styleClass="noBorderSplitPane"      
@@ -55,7 +55,7 @@
 					             AnchorPane.leftAnchor="0.0" 
 					             AnchorPane.rightAnchor="0.0">
 					             
-			          	<VBox fx:id="centerContainer">
+			          	<VBox>
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="breadCrumb"/>
 				          	</HBox>
@@ -77,8 +77,7 @@
 					          			  VBox.vgrow="always"/>
 				          	</VBox>
 		
-		          			<VBox fx:id="buttonsContainer" 
-		          				  styleClass="bottomPane">
+		          			<VBox styleClass="bottomPane">
 			          			<Button fx:id="btnSend"
 			          					text="Send"
 			          					styleClass="button-raised"
@@ -98,17 +97,15 @@
 				</SplitPane>
 			</Tab>
 			<Tab closable="false" text="Files">
-				<SplitPane fx:id="filesHorizontalSplitPane" 
-						   orientation="horizontal"
+				<SplitPane orientation="horizontal"
 						   styleClass="splitPane">
 						   
-						<VBox fx:id="leftFileContainer">
+						<VBox>
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="leftFileBreadCrumb"/>
 				          	</HBox>
 				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
-					          	<VBox fx:id="leftFilecontent" 
-					          	      styleClass="container"
+					          	<VBox styleClass="container"
 					          	      VBox.vgrow="always">
 				          	    	<TreeView fx:id="leftFileTree" 
 					         		   VBox.vgrow="always"
@@ -116,15 +113,20 @@
 							        </TreeView>
 					            </VBox>
 					        </ScrollPane>
+					        <HBox styleClass="breadCrumbContainer">
+					        	<Button
+								    text="Upload"
+									styleClass="button-raised"
+								    onAction="#onBtnUploadClick"/>
+					        </HBox>
 			          	</VBox>
 			          	
-			          	<VBox fx:id="rightFileContainer">
+			          	<VBox>
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="rightFileBreadCrumb"/>
 				          	</HBox>
 				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
-					          	<VBox fx:id="rightFilecontent" 
-					          	      styleClass="container"
+					          	<VBox styleClass="container"
 					          	      VBox.vgrow="always">
 					          	    <TreeView fx:id="rightFileTree" 
 					         		   VBox.vgrow="always"
@@ -132,6 +134,12 @@
 							   		</TreeView>
 							   </VBox>
 					        </ScrollPane>
+					        <HBox styleClass="breadCrumbContainer">
+					        	<Button
+								    text="Download"
+									styleClass="button-raised"
+								    onAction="#onBtnDownloadClick"/>
+					        </HBox>
 			          	</VBox>
 			   </SplitPane>
 			</Tab>

@@ -427,7 +427,8 @@ public class MainView implements ChangeListener<Object> {
 	            		String toLS = TreeItem.getValue().getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("/", "/");
 	            		if (TreeItem.getValue().isDirectory())
 	            			IsRemoteSftpChannel.cd(toLS);
-		            	Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
+		            	@SuppressWarnings("unchecked")
+						Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
 		            	LsEntry f = (LsEntry) v.get(0);
 			            if (f != null && f.getAttrs().isDir()) {
 			                //File[] files = f.listFiles();
@@ -613,6 +614,14 @@ public class MainView implements ChangeListener<Object> {
 		}
 	}
 
+	public void onBtnUploadClick() {
+		
+	}
+	
+	public void onBtnDownloadClick() {
+		
+	}
+	
 	private void makeDisconnectAction(){
 		model.getPowershellEmpireConnection().disconnect();
 		resetTreeView();
