@@ -1,4 +1,5 @@
 package pse_gui;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,12 +8,15 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
 
+import javax.swing.ProgressMonitor;
+
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpException;
+import com.jcraft.jsch.SftpProgressMonitor;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -62,6 +66,13 @@ public class MainView implements ChangeListener<Object> {
 	@FXML TreeView<ModifiedFile> rightFileTree;
 	@FXML BreadCrumbBar<ModifiedFile> leftFileBreadCrumb;
 	@FXML BreadCrumbBar<ModifiedFile> rightFileBreadCrumb;
+	@FXML Button btnLeftReset;
+	@FXML Button btnUpload;
+	@FXML Button btnLeftMkdir;
+	@FXML Button btnRightReset;
+	@FXML Button btnDownload;
+	@FXML Button btnDownloadAndOpen;
+	@FXML Button btnRightMkdir;
 	
 	LoginView loginController;
 	private Stage loginStage = null;
@@ -111,7 +122,7 @@ public class MainView implements ChangeListener<Object> {
 		}
 		else
 			item = existingItem;
-
+		
 		return item;
 	}
 	
@@ -337,6 +348,7 @@ public class MainView implements ChangeListener<Object> {
 			@Override
 			public void run() {
 				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
+				leftFileHome.clear();
 				TreeItem<ModifiedFile> leftFileTreeRoot;
 				try {
 					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree, System.getProperty("user.home"));
@@ -358,6 +370,7 @@ public class MainView implements ChangeListener<Object> {
 			@Override
 			public void run() {
 				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
+				rightFileHome.clear();
 				TreeItem<ModifiedFile> rightFileTreeRoot;
 				rightFileTree.setShowRoot(false);
 				if(model.getPowershellEmpireConnection().isSSHConnected()) {
@@ -423,7 +436,7 @@ public class MainView implements ChangeListener<Object> {
 		                    for (File childFile : files) {
 		                    	ModifiedFile mChildFile = new ModifiedFile(childFile.getAbsolutePath());
 		                    	try {
-		                    		TreeItem<ModifiedFile> Node = createNode(mChildFile, IsRemoteSftpChannel, root, toBeSelected); //TODO
+		                    		TreeItem<ModifiedFile> Node = createNode(mChildFile, IsRemoteSftpChannel, root, toBeSelected);
 									children.add(Node);
 									if (toBeSelected.contains(mChildFile.getAbsolutePath()))
 										leftFileHome.add(Node);
@@ -440,7 +453,7 @@ public class MainView implements ChangeListener<Object> {
 	            }
 	            else {
 	            	try {
-	            		String toLS = TreeItem.getValue().getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("\\\\", "/");
+	            		String toLS = TreeItem.getValue().getAbsolutePathConvertAsLinuxFS();
 	            		
 	            		IsRemoteSftpChannel.cd(toLS);
 		            	
@@ -448,7 +461,7 @@ public class MainView implements ChangeListener<Object> {
 						Vector<Object> v = IsRemoteSftpChannel.ls(toLS);
 		            	
 	            		LsEntry f = (LsEntry) v.get(0);
-			            if (f != null && f.getAttrs().isDir()) {
+			            if (f != null) {
 			                //File[] files = f.listFiles();
 			                if (v.size() > 1) {
 			                    ObservableList<TreeItem<ModifiedFile>> children = FXCollections.observableArrayList();
@@ -649,31 +662,146 @@ public class MainView implements ChangeListener<Object> {
 			}
 
 		} catch (IOException e) {
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 			e.printStackTrace();
 		}
 	}
-
+	//TODO Disable button when not connected
+	//TODO handle when local and not ssh
+	//TODO handler when dir and file exists
+	//TODO add a cancel button?
 	public void onBtnUploadClick() {
-		TreeItem<ModifiedFile> t = leftFileTree.getSelectionModel().getSelectedItem();
-		System.out.println(t.getValue().getAbsolutePath());
+		new Thread(new Runnable() {//http://stackoverflow.com/questions/2804376/java-background-task
+		    @Override public void run() {
+		    	TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
+				System.out.println(fLocal.getValue().getAbsolutePath());
+				
+				TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
+				System.out.println(fRemote.getValue().getPathConvertAsLinuxFS());
+				
+				ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
+				try {
+					ArrayList<Button> allButtonsToAffect = new ArrayList<Button>();
+					allButtonsToAffect.add(btnLeftReset);
+					allButtonsToAffect.add(btnUpload);
+					allButtonsToAffect.add(btnLeftMkdir);
+					
+					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect);
+					
+					if (fLocal.getValue().isDirectory()) {
+						recursiveUpload(sftpChan, fLocal.getValue(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor);
+					}
+					else
+						sftpChan.put(fLocal.getValue().getAbsolutePath(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor);
+					initialiseRemoteFileBrowser();
+				} catch (SftpException e) {
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					e.printStackTrace();
+				}
+		    }
+		}).start();
+	}
+	
+	public void recursiveUpload(ChannelSftp sftpChan, ModifiedFile fLocal, String remotePath, MyProgressMonitor monitor) {
+		try {
+			sftpChan.mkdir(remotePath + "/" + fLocal.getName());
+			for (ModifiedFile f : fLocal.listFiles()) {
+				if (f.isDirectory())
+					recursiveUpload(sftpChan, f, remotePath + "/" + fLocal.getName(), monitor);
+				else 
+					sftpChan.put(f.getAbsolutePath(), remotePath + "/" + fLocal.getName(), monitor);
+			}
+		} catch (SftpException e) {
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+			e.printStackTrace();
+		}
+	}
+	
+	//TODO handle when local and not ssh
+	//TODO handler when dir and file exists
+	public void onBtnDownloadClick() {
+		doDownload(null);
+	}
+	
+	public void doDownload(Thread threadToRunAfter) {
+		new Thread(new Runnable() {
+		    @Override public void run() {
+		    	TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
+				System.out.println(fLocal.getValue().getAbsolutePath());
+				
+				TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
+				System.out.println(fRemote.getValue().getAbsolutePathConvertAsLinuxFS());
+				
+				ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
+				try {
+					ArrayList<Button> allButtonsToAffect = new ArrayList<Button>();
+					allButtonsToAffect.add(btnRightReset);
+					allButtonsToAffect.add(btnDownload);
+					allButtonsToAffect.add(btnDownloadAndOpen);
+					allButtonsToAffect.add(btnRightMkdir);
+					
+					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect);
+					
+					if (fRemote.getValue().isDirectory()) {
+						
+					}
+					else
+						sftpChan.get(fRemote.getValue().getPathConvertAsLinuxFS(), fLocal.getValue().getAbsolutePath(), monitor);
+					initialiseLocalFileBrowser();
+				} catch (SftpException e) {
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					e.printStackTrace();
+				}
+				if (threadToRunAfter != null)
+			    	threadToRunAfter.start();
+		    }
+		}).start();
 	}
 	
 	public void onBtnDownloadAndOpenClick(){
-		onBtnDownloadClick();
-		//Open
+		doDownload(new Thread(new Runnable() {
+		    @Override public void run() {
+		    	//Open
+				TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
+				if (fRemote.getValue().isDirectory()) 
+					return;
+				else {
+					TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
+					String fileToOpen = fLocal.getValue().getAbsolutePath() + "/" + fRemote.getValue().getName();
+					try {
+						Desktop.getDesktop().open(new File(fileToOpen));
+					} catch (IOException e) {
+						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+						e.printStackTrace();
+					}
+				}
+		    }
+	    }));
 	}
-	
-	public void onBtnDownloadClick() {
-		TreeItem<ModifiedFile> t = rightFileTree.getSelectionModel().getSelectedItem();
-		System.out.println(t.getValue().getAbsolutePath());
-	}
-	
+	//TODO ask for dir name
 	public void onBtnCreateLeftClick() {
-		
+		TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
+		File f = new File(fLocal.getValue().getPath() + "/tmp");
+		f.mkdir();
+	}
+	//TODO ask for dir name
+	public void onBtnCreateRightClick() {
+		TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
+		ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
+		try {
+			sftpChan.mkdir(fRemote.getValue().getPathConvertAsLinuxFS() + "/tmp");
+		} catch (SftpException e) {
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+			e.printStackTrace();
+		}
 	}
 	
-	public void onBtnCreateRightClick() {
-		
+	public void onBtnLeftRefreshClick() {
+		initialiseLocalFileBrowser();
+	}
+	
+	public void onBtnRightRefreshClick() {
+		initialiseRemoteFileBrowser();
 	}
 	
 	private void makeDisconnectAction(){
@@ -1022,8 +1150,10 @@ public class MainView implements ChangeListener<Object> {
 		this.handler = handler;
 	}
 
-	
-	public class ModifiedFile extends File{
+	//TODO Handle distinction between ssh and local here
+	//So listFiles and all method will handle the sftpChannel
+	//Same for mkdir
+	public class ModifiedFile extends File{ 
 
 		/**
 		 * 
@@ -1056,5 +1186,90 @@ public class MainView implements ChangeListener<Object> {
 			else
 				return !associatedLsEntry.getAttrs().isDir();
 		}
+		
+		@Override
+		public ModifiedFile[] listFiles() {
+			ArrayList<ModifiedFile> toReturn = new ArrayList<ModifiedFile>();
+			File[] files = super.listFiles();
+			for (File f : files) {
+				toReturn.add(new ModifiedFile(f.getAbsolutePath()));
+			}
+			return (ModifiedFile[]) toReturn.toArray(new ModifiedFile[toReturn.size()]);
+		}
+		
+		public String getAbsolutePathConvertAsLinuxFS() {
+			return this.getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("\\\\", "/");
+		}
+		
+		public String getPathConvertAsLinuxFS() {
+			return this.getPath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("\\\\", "/");
+		}
+	}
+	
+	public class MyProgressMonitor implements SftpProgressMonitor { //TODO modify this thing to make it work
+		//ProgressMonitor monitor;
+	    long count=0;
+	    long max=0;
+	    ArrayList<Button> allButtonsToAffect;
+	    private long percent=-1;
+	    String backupStyle;
+	    int previousOne = 0;
+	    
+		public MyProgressMonitor(ArrayList<Button> allButtonsToAffect) {
+			this.allButtonsToAffect = allButtonsToAffect;
+			for (Button b : allButtonsToAffect) {
+				b.setDisable(true);
+			}
+			backupStyle = allButtonsToAffect.size() > 0 ? allButtonsToAffect.get(0).getStyle() : "";
+		}
+		
+	    public void init(int op, String src, String dest, long max){
+	      this.max=max;
+	     // monitor=new ProgressMonitor(null, 
+	     //                             ((op==SftpProgressMonitor.PUT)? 
+	     //                              "put" : "get")+": "+src, 
+	     //                             "",  0, (int)max);
+	      count=0;
+	      percent=-1;
+	      //monitor.setProgress((int)this.count);
+	      //monitor.setMillisToDecideToPopup(1000);
+	    }
+	    
+	    public boolean count(long count){
+	      this.count+=count;
+
+	      if(percent>=this.count*100/max){ return true; }
+	      percent=this.count*100/max;
+	      
+	      if(percent>=100){ return false; }
+	      
+	      int getValueNbre = (int) (percent * (long)allButtonsToAffect.size() / 100.0); //(((int)Math.ceil((percent) * allButtonsToAffect.size()) / 100));
+	      int alphaValueNbre = (int) (percent * 256 / 100);
+    	  if (alphaValueNbre > previousOne) {
+    		  String alpha = Integer.toHexString(alphaValueNbre);
+    		  String inverseAlpha = Integer.toHexString(255 - alphaValueNbre);
+    		  
+    		  //Note: The 
+    		  if (getValueNbre >= allButtonsToAffect.size()) {
+    			  getValueNbre = allButtonsToAffect.size() - 1; //Horrible fix. It is just in case. we should normally never get here
+    			  System.out.println("Oups! Error! Should never have gotten here! You have found an edge case! Please report it on github! In function MyProgressMonitor.count");
+    		  }
+	    	  allButtonsToAffect.get(getValueNbre).setStyle("-fx-base: #" + (inverseAlpha.length() == 1 ? "0" + inverseAlpha : inverseAlpha) + (alpha.length() == 1 ? "0" + alpha : alpha) + "00;"); //TODO increment alpha for more feedback
+	      }
+    	  previousOne = alphaValueNbre;
+	      
+	      //monitor.setNote("Completed "+this.count+"("+percent+"%) out of "+max+".");     
+	      //monitor.setProgress((int)this.count);
+
+	      return true;
+	    }
+	    
+	    public void end(){
+	      //monitor.close();
+	      for (Button b : allButtonsToAffect) {
+	    	  b.setStyle(backupStyle);
+	    	  b.setDisable(false);
+	      }
+	    }
 	}
 }

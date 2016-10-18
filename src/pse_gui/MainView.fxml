@@ -114,12 +114,16 @@
 					            </VBox>
 					        </ScrollPane>
 					        <HBox styleClass="breadCrumbContainer">
-					        	<Button
+					        	<Button fx:id="btnLeftReset"
+								    text="Reset"
+									styleClass="button-raised"
+								    onAction="#onBtnLeftRefreshClick"/>
+					        	<Button fx:id="btnUpload"
 								    text="Upload"
 									styleClass="button-raised"
 								    onAction="#onBtnUploadClick"/>
-								    <Button
-								    text="Create a directory"
+							    <Button fx:id="btnLeftMkdir"
+								    text="mkdir"
 									styleClass="button-raised"
 								    onAction="#onBtnCreateLeftClick"/>
 					        </HBox>
@@ -139,16 +143,20 @@
 							   </VBox>
 					        </ScrollPane>
 					        <HBox styleClass="breadCrumbContainer">
-					        	<Button
+					        	<Button fx:id="btnRightReset"
+								    text="Reset"
+									styleClass="button-raised"
+								    onAction="#onBtnRightRefreshClick"/>
+					        	<Button fx:id="btnDownload"
 								    text="Download"
 									styleClass="button-raised"
 								    onAction="#onBtnDownloadClick"/>
-								<Button
+								<Button fx:id="btnDownloadAndOpen"
 								    text="Download and Open"
 									styleClass="button-raised"
 								    onAction="#onBtnDownloadAndOpenClick"/>
-							    <Button
-								    text="Create a directory"
+							    <Button fx:id="btnRightMkdir"
+								    text="mkdir"
 									styleClass="button-raised"
 								    onAction="#onBtnCreateRightClick"/>
 					        </HBox>
