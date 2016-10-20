@@ -27,7 +27,7 @@ public class UIMain extends Application {
 			@Override
 			public void handle(WindowEvent event) {
 				if(mainController != null) {
-					mainController.disconnect();
+					mainController.disconnectDoAction();
 				}	
 			}
 		});

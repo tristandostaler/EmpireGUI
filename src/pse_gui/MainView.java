@@ -1,5 +1,6 @@
 package pse_gui;
 import java.awt.Desktop;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import javax.swing.ProgressMonitor;
 
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent;
+import org.w3c.dom.events.MouseEvent;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -26,6 +28,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -73,6 +76,8 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnDownload;
 	@FXML Button btnDownloadAndOpen;
 	@FXML Button btnRightMkdir;
+	@FXML Button btnLeftCancel;
+	@FXML Button btnRightCancel;
 	
 	LoginView loginController;
 	private Stage loginStage = null;
@@ -143,14 +148,6 @@ public class MainView implements ChangeListener<Object> {
 	@Override
 	public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
 		refreshMainContent((MapTreeItem)newValue);
-	}
-	
-	public void disconnect() {
-		if(model.getPowershellEmpireConnection() != null && model.getPowershellEmpireConnection().isConnected()) {
-			model.getPowershellEmpireConnection().disconnect();
-			resetTreeView();
-			resetMainContent();
-		}
 	}
 
 	private MapTreeItem getItemOfName(String name, MapTreeItem parent) {
@@ -233,8 +230,23 @@ public class MainView implements ChangeListener<Object> {
 			}
 		});
 		
+		setDisabledFilesButtons(true);
+		
+		btnLeftCancel.setDisable(true);
+		btnRightCancel.setDisable(true);
+		
 		initialiseLocalFileBrowser();
     }
+	
+	private void setDisabledFilesButtons(boolean disable){
+		btnLeftReset.setDisable(disable);
+		btnUpload.setDisable(disable);
+		btnLeftMkdir.setDisable(disable);
+		btnRightReset.setDisable(disable);
+		btnDownload.setDisable(disable);
+		btnDownloadAndOpen.setDisable(disable);
+		btnRightMkdir.setDisable(disable);
+	}
 	
 	private void initializeTreeView() {
 		if(treeRoot == null) {
@@ -566,6 +578,7 @@ public class MainView implements ChangeListener<Object> {
 											handler.getListenerOptions();
 											//handler.initialiseFileHandler();
 											initialiseRemoteFileBrowser();
+											setDisabledFilesButtons(false);
 										}
 										catch(Exception e) {
 											e.printStackTrace();
@@ -573,7 +586,7 @@ public class MainView implements ChangeListener<Object> {
 										}
 									}
 									else{
-										makeDisconnectAction();
+										disconnectDoAction();
 									}
 
 									return null;
@@ -653,7 +666,7 @@ public class MainView implements ChangeListener<Object> {
 			
 			// Disconnect
 			if(model.getPowershellEmpireConnection() != null && model.getPowershellEmpireConnection().isConnected()) {
-				makeDisconnectAction();
+				disconnectDoAction();
 			}
 			
 			// Connect
@@ -666,10 +679,9 @@ public class MainView implements ChangeListener<Object> {
 			e.printStackTrace();
 		}
 	}
-	//TODO Disable button when not connected
+	
 	//TODO handle when local and not ssh
 	//TODO handler when dir and file exists
-	//TODO add a cancel button?
 	public void onBtnUploadClick() {
 		new Thread(new Runnable() {//http://stackoverflow.com/questions/2804376/java-background-task
 		    @Override public void run() {
@@ -686,7 +698,7 @@ public class MainView implements ChangeListener<Object> {
 					allButtonsToAffect.add(btnUpload);
 					allButtonsToAffect.add(btnLeftMkdir);
 					
-					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect);
+					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnLeftCancel);
 					
 					if (fLocal.getValue().isDirectory()) {
 						recursiveUpload(sftpChan, fLocal.getValue(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor);
@@ -740,7 +752,7 @@ public class MainView implements ChangeListener<Object> {
 					allButtonsToAffect.add(btnDownloadAndOpen);
 					allButtonsToAffect.add(btnRightMkdir);
 					
-					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect);
+					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnRightCancel);
 					
 					if (fRemote.getValue().isDirectory()) {
 						
@@ -804,11 +816,15 @@ public class MainView implements ChangeListener<Object> {
 		initialiseRemoteFileBrowser();
 	}
 	
-	private void makeDisconnectAction(){
-		model.getPowershellEmpireConnection().disconnect();
-		resetTreeView();
-		resetMainContent();
-		refreshLabels();
+	public void disconnectDoAction() {
+		//TODO make sure no edge case with the check in the if (before there was no if)
+		if(model.getPowershellEmpireConnection() != null && model.getPowershellEmpireConnection().isConnected()) {
+			model.getPowershellEmpireConnection().disconnect();
+			resetTreeView();
+			resetMainContent();
+			refreshLabels();
+			setDisabledFilesButtons(true);
+		}
 	}
 	
 	public void writeTextToLogArea(String text){
@@ -1206,7 +1222,7 @@ public class MainView implements ChangeListener<Object> {
 		}
 	}
 	
-	public class MyProgressMonitor implements SftpProgressMonitor { //TODO modify this thing to make it work
+	public class MyProgressMonitor implements SftpProgressMonitor {
 		//ProgressMonitor monitor;
 	    long count=0;
 	    long max=0;
@@ -1214,13 +1230,18 @@ public class MainView implements ChangeListener<Object> {
 	    private long percent=-1;
 	    String backupStyle;
 	    int previousOne = 0;
+	    boolean notCancelClicked = true;
+	    Button cancelBtn;
 	    
-		public MyProgressMonitor(ArrayList<Button> allButtonsToAffect) {
+		public MyProgressMonitor(ArrayList<Button> allButtonsToAffect, Button cancelBtn) {
 			this.allButtonsToAffect = allButtonsToAffect;
 			for (Button b : allButtonsToAffect) {
 				b.setDisable(true);
 			}
 			backupStyle = allButtonsToAffect.size() > 0 ? allButtonsToAffect.get(0).getStyle() : "";
+			this.cancelBtn = cancelBtn;
+			cancelBtn.setDisable(false);
+			cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });
 		}
 		
 	    public void init(int op, String src, String dest, long max){
@@ -1246,22 +1267,27 @@ public class MainView implements ChangeListener<Object> {
 	      int getValueNbre = (int) (percent * (long)allButtonsToAffect.size() / 100.0); //(((int)Math.ceil((percent) * allButtonsToAffect.size()) / 100));
 	      int alphaValueNbre = (int) (percent * 256 / 100);
     	  if (alphaValueNbre > previousOne) {
-    		  String alpha = Integer.toHexString(alphaValueNbre);
-    		  String inverseAlpha = Integer.toHexString(255 - alphaValueNbre);
+    		  String green = Integer.toHexString(alphaValueNbre);
+    		  String inverseGreenForRed = Integer.toHexString(255 - alphaValueNbre);
     		  
     		  //Note: The 
     		  if (getValueNbre >= allButtonsToAffect.size()) {
     			  getValueNbre = allButtonsToAffect.size() - 1; //Horrible fix. It is just in case. we should normally never get here
     			  System.out.println("Oups! Error! Should never have gotten here! You have found an edge case! Please report it on github! In function MyProgressMonitor.count");
     		  }
-	    	  allButtonsToAffect.get(getValueNbre).setStyle("-fx-base: #" + (inverseAlpha.length() == 1 ? "0" + inverseAlpha : inverseAlpha) + (alpha.length() == 1 ? "0" + alpha : alpha) + "00;"); //TODO increment alpha for more feedback
+	    	  allButtonsToAffect.get(getValueNbre).setStyle("-fx-base: #" + (inverseGreenForRed.length() == 1 ? "0" + inverseGreenForRed : inverseGreenForRed) + (green.length() == 1 ? "0" + green : green) + "00;");
 	      }
     	  previousOne = alphaValueNbre;
 	      
 	      //monitor.setNote("Completed "+this.count+"("+percent+"%) out of "+max+".");     
 	      //monitor.setProgress((int)this.count);
 
-	      return true;
+    	 /* if (notCancelClicked)
+    		  System.out.println("Uploading...");
+    	  else
+    		  System.out.println("Canceled");*/
+    	  
+	      return notCancelClicked;
 	    }
 	    
 	    public void end(){
@@ -1270,6 +1296,7 @@ public class MainView implements ChangeListener<Object> {
 	    	  b.setStyle(backupStyle);
 	    	  b.setDisable(false);
 	      }
+	      cancelBtn.setDisable(true);
 	    }
 	}
 }

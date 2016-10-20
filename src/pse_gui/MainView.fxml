@@ -126,6 +126,10 @@
 								    text="mkdir"
 									styleClass="button-raised"
 								    onAction="#onBtnCreateLeftClick"/>
+							    <Button fx:id="btnLeftCancel"
+								    text="Cancel"
+									styleClass="button-raised"
+								    />
 					        </HBox>
 			          	</VBox>
 			          	
@@ -159,6 +163,10 @@
 								    text="mkdir"
 									styleClass="button-raised"
 								    onAction="#onBtnCreateRightClick"/>
+								<Button fx:id="btnRightCancel"
+								    text="Cancel"
+									styleClass="button-raised"
+								    />
 					        </HBox>
 			          	</VBox>
 			   </SplitPane>
