@@ -410,6 +410,7 @@ public class MainView implements ChangeListener<Object> {
 		
 	}
 	
+	//TODO order files by name, starting with ., .. and and .XYZ
 	private TreeItem<ModifiedFile> createNode(final ModifiedFile f, ChannelSftp ifIsRemoteSftpChannel, TreeView<ModifiedFile> root, String toBeSelected) throws SftpException {
 		TreeItem<ModifiedFile> toReturn =  new TreeItem<ModifiedFile>(f) {
 	        private boolean isLeaf;
