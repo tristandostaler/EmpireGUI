@@ -1,6 +1,5 @@
 package pse_gui;
 import java.awt.Desktop;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,11 +8,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import javax.swing.ProgressMonitor;
-
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent;
-import org.w3c.dom.events.MouseEvent;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -28,7 +24,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -50,6 +45,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+@SuppressWarnings("restriction")
 public class MainView implements ChangeListener<Object> {
 
 	@FXML BreadCrumbBar<String> breadCrumb;
@@ -731,7 +727,7 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	//TODO handle when local and not ssh
-	//TODO handler when dir and file exists
+	//TODO handle when dir and file exists
 	public void onBtnDownloadClick() {
 		doDownload(null);
 	}
@@ -917,7 +913,8 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public void onBtnResetClick() { //TODO
-		logTextArea.appendText("> Reset current page command executed..\n" );
+		//logTextArea.appendText("> Reset current page command executed..\n" );
+		logTextArea.appendText("> Reset Function is undefined!\n" );
 	}
 	
 	public void onBtnDeleteClick(){
@@ -1031,7 +1028,7 @@ public class MainView implements ChangeListener<Object> {
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
 			}
 			else if(parent.getValue().equals(AGENT_STRING)){
-				ItemType type = ItemType.AGENT;
+				//ItemType type = ItemType.AGENT;
 				deleteType = ItemType.AGENT;
 				this.model.setUserRequest(null);
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
@@ -1042,6 +1039,7 @@ public class MainView implements ChangeListener<Object> {
 			}
 			else if(parent.getValue().equals(STAGER_STRING)){
 				ItemType type = ItemType.STAGER;
+				@SuppressWarnings("unchecked")
 				ArrayList<Field> copy = (ArrayList<Field>) item.getFieldList().clone();
 				copy.add(new Field("StagerName", "The stager name", ((MapTreeItem)item).getValue(), true));
 				this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, copy, type));
@@ -1067,6 +1065,7 @@ public class MainView implements ChangeListener<Object> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void refreshTreeBranch(MapTreeItem branch, Map<String, Object> map) {
 		
 		if(map.get(LISTENER_OPTIONS_STRING) != null){
@@ -1224,7 +1223,6 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public class MyProgressMonitor implements SftpProgressMonitor {
-		//ProgressMonitor monitor;
 	    long count=0;
 	    long max=0;
 	    ArrayList<Button> allButtonsToAffect;
@@ -1242,19 +1240,13 @@ public class MainView implements ChangeListener<Object> {
 			backupStyle = allButtonsToAffect.size() > 0 ? allButtonsToAffect.get(0).getStyle() : "";
 			this.cancelBtn = cancelBtn;
 			cancelBtn.setDisable(false);
-			cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });
+			cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });cancelBtn.getOnMouseClicked();
 		}
 		
 	    public void init(int op, String src, String dest, long max){
 	      this.max=max;
-	     // monitor=new ProgressMonitor(null, 
-	     //                             ((op==SftpProgressMonitor.PUT)? 
-	     //                              "put" : "get")+": "+src, 
-	     //                             "",  0, (int)max);
 	      count=0;
 	      percent=-1;
-	      //monitor.setProgress((int)this.count);
-	      //monitor.setMillisToDecideToPopup(1000);
 	    }
 	    
 	    public boolean count(long count){
@@ -1265,13 +1257,12 @@ public class MainView implements ChangeListener<Object> {
 	      
 	      if(percent>=100){ return false; }
 	      
-	      int getValueNbre = (int) (percent * (long)allButtonsToAffect.size() / 100.0); //(((int)Math.ceil((percent) * allButtonsToAffect.size()) / 100));
+	      int getValueNbre = (int) (percent * (long)allButtonsToAffect.size() / 100.0);
 	      int alphaValueNbre = (int) (percent * 256 / 100);
     	  if (alphaValueNbre > previousOne) {
     		  String green = Integer.toHexString(alphaValueNbre);
     		  String inverseGreenForRed = Integer.toHexString(255 - alphaValueNbre);
     		  
-    		  //Note: The 
     		  if (getValueNbre >= allButtonsToAffect.size()) {
     			  getValueNbre = allButtonsToAffect.size() - 1; //Horrible fix. It is just in case. we should normally never get here
     			  System.out.println("Oups! Error! Should never have gotten here! You have found an edge case! Please report it on github! In function MyProgressMonitor.count");
@@ -1280,9 +1271,6 @@ public class MainView implements ChangeListener<Object> {
 	      }
     	  previousOne = alphaValueNbre;
 	      
-	      //monitor.setNote("Completed "+this.count+"("+percent+"%) out of "+max+".");     
-	      //monitor.setProgress((int)this.count);
-
     	 /* if (notCancelClicked)
     		  System.out.println("Uploading...");
     	  else
@@ -1292,12 +1280,12 @@ public class MainView implements ChangeListener<Object> {
 	    }
 	    
 	    public void end(){
-	      //monitor.close();
 	      for (Button b : allButtonsToAffect) {
 	    	  b.setStyle(backupStyle);
 	    	  b.setDisable(false);
 	      }
 	      cancelBtn.setDisable(true);
+	      cancelBtn.setOnMouseClicked(null); //So the GC collects it
 	    }
 	}
 }
