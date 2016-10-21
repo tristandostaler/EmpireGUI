@@ -1018,8 +1018,8 @@ public class MainView implements ChangeListener<Object> {
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
 				actualItemToDelete = item.getValue();
 				this.btnDelete.setDisable(false);
-				btnReset.setDisable(false);
-				btnSend.setDisable(false);
+				//btnReset.setDisable(false);
+				//btnSend.setDisable(false);
 			}
 			else if(parent.getValue().equals(STAGER_STRING)){
 				ItemType type = ItemType.STAGER;
