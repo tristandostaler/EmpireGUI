@@ -76,6 +76,8 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnLeftCancel;
 	@FXML Button btnRightCancel;
 	
+	String backupStyle;
+	
 	LoginView loginController;
 	private Stage loginStage = null;
 	
@@ -232,6 +234,8 @@ public class MainView implements ChangeListener<Object> {
 		btnLeftCancel.setDisable(true);
 		btnRightCancel.setDisable(true);
 		
+		backupStyle = btnLeftReset.getStyle();
+		
 		initialiseLocalFileBrowser();
     }
 	
@@ -360,7 +364,9 @@ public class MainView implements ChangeListener<Object> {
 				leftFileHome.clear();
 				TreeItem<ModifiedFile> leftFileTreeRoot;
 				try {
-					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree, System.getProperty("user.home"));
+					String rootPath = System.getProperty("user.home") + "\\Empire";
+					new File(rootPath).mkdir();
+					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree, rootPath);
 					leftFileTree.setShowRoot(false);
 					leftFileTree.setRoot(leftFileTreeRoot);
 					for (int i = 0; i < leftFileHome.size(); i++) {
@@ -376,6 +382,7 @@ public class MainView implements ChangeListener<Object> {
 
 	public void initialiseRemoteFileBrowser() {
 		Platform.runLater(new Runnable() {
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public void run() {
 				//http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
@@ -385,7 +392,9 @@ public class MainView implements ChangeListener<Object> {
 				if(model.getPowershellEmpireConnection().isSSHConnected()) {
 					ChannelSftp sftpChann = model.getPowershellEmpireConnection().getSFTPChannel();
 					try {
-						rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree, "/tmp");
+						HashMap<String, Object> config = (HashMap<String, Object>) ((ArrayList) model.getServerConfigList().getValue().get("config")).get(0);
+						String install_path = (String) config.get("install_path"); //Ends with a /
+						rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree, install_path + "downloads"); //"/tmp"); 
 						rightFileTree.setRoot(rightFileTreeRoot);
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -532,6 +541,7 @@ public class MainView implements ChangeListener<Object> {
 											handler.getModules();
 											handler.getListeners();
 											handler.getListenerOptions();
+											handler.getServerConfig();
 											//handler.initialiseFileHandler();
 											initialiseRemoteFileBrowser();
 											setDisabledFilesButtons(false);
@@ -751,7 +761,7 @@ public class MainView implements ChangeListener<Object> {
 					return;
 				else {
 					TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
-					String fileToOpen = fLocal.getValue().getAbsolutePath() + "/" + fRemote.getValue().getName();
+					String fileToOpen = fLocal.getValue().getAbsolutePath() + (fLocal.getValue().isFile() ? "" : ("/" + fRemote.getValue().getName()));
 					try {
 						Desktop.getDesktop().open(new File(fileToOpen));
 					} catch (IOException e) {
@@ -789,7 +799,6 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public void disconnectDoAction() {
-		//TODO make sure no edge case with the check in the if (before there was no if)
 		if(model.getPowershellEmpireConnection() != null && model.getPowershellEmpireConnection().isConnected()) {
 			model.getPowershellEmpireConnection().disconnect();
 			resetTreeView();
@@ -1308,7 +1317,7 @@ public class MainView implements ChangeListener<Object> {
 	    
 		public MyProgressMonitor(ArrayList<Button> allButtonsToAffect, Button cancelBtn) {
 			this.allButtonsToAffect = allButtonsToAffect;
-			backupStyle = allButtonsToAffect.size() > 0 ? allButtonsToAffect.get(0).getStyle() : "";
+			//backupStyle = allButtonsToAffect.size() > 0 ? allButtonsToAffect.get(0).getStyle() : "";
 			this.cancelBtn = cancelBtn;
 		}
 		
