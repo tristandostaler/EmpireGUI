@@ -156,7 +156,7 @@
 									styleClass="button-raised"
 								    onAction="#onBtnDownloadClick"/>
 								<Button fx:id="btnDownloadAndOpen"
-								    text="Download and Open"
+								    text="Open"
 									styleClass="button-raised"
 								    onAction="#onBtnDownloadAndOpenClick"/>
 							    <Button fx:id="btnRightMkdir"
