@@ -112,6 +112,10 @@ public class MainView implements ChangeListener<Object> {
 	private ArrayList<TreeItem<ModifiedFile>> leftFileHome = new ArrayList<TreeItem<ModifiedFile>>();
 	private ArrayList<TreeItem<ModifiedFile>> rightFileHome = new ArrayList<TreeItem<ModifiedFile>>();
 	
+	/*TO-DO section: Add more general todo here
+		TODO add a tab for the reporting part of the rest api:
+			https://github.com/adaptivethreat/Empire/wiki/RESTful-API#reporting
+	*/
 	public MainView() {
 		uiObjectCreator = new UIObjectCreator();
 	}
