@@ -1,12 +1,8 @@
 package pse_gui;
-import java.io.File;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
-import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 
 
 public class RequestHandler {
@@ -220,14 +216,4 @@ public class RequestHandler {
 		this.ui.notifyLocalFileUpdated();
 		this.ui.notifyRemoteFileUpdated();
 	}*/
-	
-	public void getServerFiles(String directory){
-		if(this.model.getPowershellEmpireConnection().isSSHConnected()) {
-			ChannelSftp sftpChann = this.model.getPowershellEmpireConnection().getSFTPChannel();
-			
-		}
-		else {
-			
-		}
-	}
 }

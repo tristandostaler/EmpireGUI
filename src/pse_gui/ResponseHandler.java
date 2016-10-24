@@ -3,10 +3,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -14,6 +11,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 // The interface that is used to handle responses from the JSON thing
+@SuppressWarnings("restriction")
 public abstract class ResponseHandler {
 	
 	private SyntaxAnalyzer syntaxAnalyzer;
@@ -23,6 +21,7 @@ public abstract class ResponseHandler {
 		this.bypassIfError = bypassIfError;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void handleResponse(JSON json){
 		ServerResponse serverResponse = syntaxAnalyzer.jsonToServerResponse(json);
 		baseHandleResponse(serverResponse);
@@ -90,6 +89,7 @@ public abstract class ResponseHandler {
 		alert.showAndWait();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void showException(Map<String, Object> map){
 		ArrayList<Map<String, Object>> ex = (ArrayList<Map<String, Object>>) map.get("Exception");
 		SharedCentralisedClass.getInstance().showStackTraceInAlertWindow((String)ex.get(0).get("Message"), (String)ex.get(0).get("Trace"));

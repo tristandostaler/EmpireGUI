@@ -62,6 +62,7 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnDelete;
 	@FXML Button btnReset;
 	@FXML Button btnSend;
+	@FXML Button btnReport;
 	@FXML TreeView<ModifiedFile> leftFileTree;
 	@FXML TreeView<ModifiedFile> rightFileTree;
 	@FXML BreadCrumbBar<ModifiedFile> leftFileBreadCrumb;
@@ -105,16 +106,21 @@ public class MainView implements ChangeListener<Object> {
 	
 	private boolean HasRunLater = false;
 	
-	private String actualItemToDelete = "";
+	private String actualSelectedItemAgentOrListener = "";
 	
 	private ItemType deleteType;
 	
 	private ArrayList<TreeItem<ModifiedFile>> leftFileHome = new ArrayList<TreeItem<ModifiedFile>>();
 	private ArrayList<TreeItem<ModifiedFile>> rightFileHome = new ArrayList<TreeItem<ModifiedFile>>();
 	
+	private HashMap<String, ServerResponse> agentsReportingMap = new HashMap<String, ServerResponse>();
+	
 	/*TO-DO section: Add more general todo here
-		TODO add a tab for the reporting part of the rest api:
-			https://github.com/adaptivethreat/Empire/wiki/RESTful-API#reporting
+	 	TODO finish the todo for the files tab
+		TODO add a tab for a SSH terminal
+		TODO add some automation like all 5 secondes get reporting on all agents and notify if new reports arrived
+		TODO add the possibility to make some script to automate some action
+			Example: when module screenshot is used, download the screenshot and open it automatically
 	*/
 	public MainView() {
 		uiObjectCreator = new UIObjectCreator();
@@ -198,7 +204,7 @@ public class MainView implements ChangeListener<Object> {
 			}
 			
 		});
-		btnDelete.setDisable(true);
+		mainTabButtonsSetDisable(true);
 		
 		leftFileBreadCrumb.setAutoNavigationEnabled(false);
 		leftFileBreadCrumb.selectedCrumbProperty().bind(leftFileTree.getSelectionModel().selectedItemProperty());
@@ -240,7 +246,7 @@ public class MainView implements ChangeListener<Object> {
 		
 		backupStyle = btnLeftReset.getStyle();
 		
-		initialiseLocalFileBrowser();
+		initialiseLocalFileBrowser(null);
     }
 	
 	private void setDisabledFilesButtons(boolean disable){
@@ -359,8 +365,34 @@ public class MainView implements ChangeListener<Object> {
 			}
 		});
 	}
+	
+	public void notifyAgentReportUpdated(String actualSelectedItemAgentOrListenerToHandle) {
+		Platform.runLater(new Runnable() {
 
-	public void initialiseLocalFileBrowser() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void run() {
+				try {
+					if (agentsReportingMap.containsKey(actualSelectedItemAgentOrListenerToHandle)) {
+						ServerResponse reportResponse = agentsReportingMap.get(actualSelectedItemAgentOrListenerToHandle);
+						content.getChildren().clear();
+						for (HashMap<String, Object> event : ((ArrayList<HashMap<String, Object>>) reportResponse.getValue().get("reporting"))) {
+							content.getChildren().add(new Label("Agent " + ((String) event.get("agentname")) + " event ID " + ((Integer) event.get("ID")) + ": "));
+							content.getChildren().add(uiObjectCreator.generateVBox(model.getUserRequest(), event));
+							content.getChildren().add(new Label(""));
+						}
+					}
+				} catch (Exception e) {
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					e.printStackTrace();
+				}
+				tree.setDisable(false);
+			}
+			
+		});
+	}
+
+	public void initialiseLocalFileBrowser(String toGoPath) {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
@@ -369,6 +401,8 @@ public class MainView implements ChangeListener<Object> {
 				TreeItem<ModifiedFile> leftFileTreeRoot;
 				try {
 					String rootPath = System.getProperty("user.home") + "\\Empire";
+					if (toGoPath != null)
+						rootPath = toGoPath;
 					new File(rootPath).mkdir();
 					leftFileTreeRoot = createNode(new ModifiedFile("/"), null, leftFileTree, rootPath);
 					leftFileTree.setShowRoot(false);
@@ -384,7 +418,7 @@ public class MainView implements ChangeListener<Object> {
 		
 	}
 
-	public void initialiseRemoteFileBrowser() {
+	public void initialiseRemoteFileBrowser(String toGoPath) {
 		Platform.runLater(new Runnable() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
@@ -397,16 +431,25 @@ public class MainView implements ChangeListener<Object> {
 					ChannelSftp sftpChann = model.getPowershellEmpireConnection().getSFTPChannel();
 					try {
 						HashMap<String, Object> config = (HashMap<String, Object>) ((ArrayList) model.getServerConfigList().getValue().get("config")).get(0);
-						String install_path = (String) config.get("install_path"); //Ends with a /
-						rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree, install_path + "downloads"); //"/tmp"); 
-						rightFileTree.setRoot(rightFileTreeRoot);
+						if (toGoPath == null) {
+							String install_path = (String) config.get("install_path"); //Ends with a /
+							rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree, install_path + "downloads");
+							rightFileTree.setRoot(rightFileTreeRoot);
+						}
+						else {
+							rightFileTreeRoot = createNode(new ModifiedFile("/"), sftpChann, rightFileTree, toGoPath);
+							rightFileTree.setRoot(rightFileTreeRoot);
+						}
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					}
 				}
 				else {
 					try {
-						rightFileTreeRoot = createNode(new ModifiedFile("/"), null, rightFileTree, "/tmp");
+						if (toGoPath == null)
+							rightFileTreeRoot = createNode(new ModifiedFile("/"), null, rightFileTree, "/tmp");
+						else
+							rightFileTreeRoot = createNode(new ModifiedFile("/"), null, rightFileTree, toGoPath);
 						rightFileTree.setRoot(rightFileTreeRoot);
 					} catch (SftpException e) {
 						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -547,7 +590,7 @@ public class MainView implements ChangeListener<Object> {
 											handler.getListenerOptions();
 											handler.getServerConfig();
 											//handler.initialiseFileHandler();
-											initialiseRemoteFileBrowser();
+											initialiseRemoteFileBrowser(null);
 											setDisabledFilesButtons(false);
 										}
 										catch(Exception e) {
@@ -653,8 +696,10 @@ public class MainView implements ChangeListener<Object> {
 	//TODO handle when local and not ssh
 	//TODO handler when dir and file exists
 	public void onBtnUploadClick() {
-		new Thread(new Runnable() {//http://stackoverflow.com/questions/2804376/java-background-task
-		    @Override public void run() {
+		new Thread(new Runnable() {
+			//http://stackoverflow.com/questions/2804376/java-background-task
+		    @Override 
+		    public void run() {
 		    	TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
 				System.out.println(fLocal.getValue().getAbsolutePath());
 				
@@ -675,7 +720,8 @@ public class MainView implements ChangeListener<Object> {
 					}
 					else
 						sftpChan.put(fLocal.getValue().getAbsolutePath(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor, ChannelSftp.OVERWRITE);
-					initialiseRemoteFileBrowser();
+					String toGoPath = rightFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePathConvertAsLinuxFS();
+					initialiseRemoteFileBrowser(toGoPath);
 				} catch (SftpException e) {
 					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
@@ -725,12 +771,12 @@ public class MainView implements ChangeListener<Object> {
 					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnRightCancel);
 					
 					if (fRemote.getValue().isDirectory()) {
-						//TODO recursive download
 						recursiveDownload(sftpChan, fRemote.getValue(), fLocal.getValue().getAbsolutePath(), monitor);
 					}
 					else
 						sftpChan.get(fRemote.getValue().getPathConvertAsLinuxFS(), fLocal.getValue().getAbsolutePath(), monitor, ChannelSftp.OVERWRITE);
-					initialiseLocalFileBrowser();
+					String toGoPath = leftFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePath();
+					initialiseLocalFileBrowser(toGoPath);
 				} catch (SftpException e) {
 					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
@@ -795,11 +841,13 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public void onBtnLeftRefreshClick() {
-		initialiseLocalFileBrowser(); //TODO initialise and go to the last used folder
+		String toGoPath = leftFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePath();
+		initialiseLocalFileBrowser(toGoPath); 
 	}
 	
 	public void onBtnRightRefreshClick() {
-		initialiseRemoteFileBrowser(); //TODO initialise and go to the last used folder
+		String toGoPath = rightFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePathConvertAsLinuxFS();
+		initialiseRemoteFileBrowser(toGoPath);
 	}
 	
 	public void disconnectDoAction() {
@@ -841,7 +889,7 @@ public class MainView implements ChangeListener<Object> {
 		Platform.runLater(new Runnable() {
 	        @Override
 	        public void run() {
-	        	Alert alert = new Alert(AlertType.ERROR);
+	        	Alert alert = new Alert(AlertType.ERROR); //TODO use type confirmation to confirm overwriting in the files tab
 	    		alert.setTitle("Exception!");
 	    		alert.setHeaderText("An Exception occured! ");
 	    		alert.setContentText(message);
@@ -886,20 +934,6 @@ public class MainView implements ChangeListener<Object> {
 			handler.makeUserRequest(new UserRequestResponseHandler());
 	}
 	
-	public class ListenerRequestResponseHandler extends ResponseHandler{
-
-		public ListenerRequestResponseHandler() {
-			super(false);
-		}
-		@Override
-		public void baseHandleResponse(ServerResponse serverResponse) {
-			String s = serverResponse.getValue().toString();
-			System.out.println(s);
-			handler.getListeners();
-		}
-
-	}
-	
 	public void onBtnResetClick() { //TODO
 		//logTextArea.appendText("> Reset current page command executed..\n" );
 		logTextArea.appendText("> Reset Function is undefined!\n" );
@@ -908,52 +942,24 @@ public class MainView implements ChangeListener<Object> {
 	public void onBtnDeleteClick(){
 		if(deleteType == ItemType.AGENT) {
 			ItemType type = ItemType.AGENT;
-			this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "agents/" + actualItemToDelete + "/kill"));
+			this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "agents/" + actualSelectedItemAgentOrListener + "/kill"));
 			handler.makeUserRequest(new KillAgentResponseHandler());
 		}
 		else if(deleteType == ItemType.LISTENER){
 			ItemType type = ItemType.LISTENER;
-			this.model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "listeners/" + actualItemToDelete));
+			this.model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "listeners/" + actualSelectedItemAgentOrListener));
 			handler.makeUserRequest(new DeleteListenerResponseHandler());
 		}
 	}
 	
-	public class KillAgentResponseHandler extends ResponseHandler{
-
-		public KillAgentResponseHandler() {
-			super(false);
-		}
-		@Override
-		public void baseHandleResponse(ServerResponse serverResponse) {
-			ItemType type = ItemType.AGENT;
-			model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "agents/" + actualItemToDelete));
-			handler.makeUserRequest(new DeleteAgentResponseHandler());
-		}
-
-	}
-	
-	public class DeleteAgentResponseHandler extends ResponseHandler{
-
-		public DeleteAgentResponseHandler() {
-			super(false);
-		}
-		@Override
-		public void baseHandleResponse(ServerResponse serverResponse) {
-			handler.getAgents();
-		}
-
-	}
-	
-	public class DeleteListenerResponseHandler extends ResponseHandler{
-
-		public DeleteListenerResponseHandler() {
-			super(false);
-		}
-		@Override
-		public void baseHandleResponse(ServerResponse serverResponse) {
-			handler.getListeners();
-		}
-
+	public void onBtnReportClick() {
+		//TODO
+		if (agentsReportingMap.containsKey(actualSelectedItemAgentOrListener))
+			agentsReportingMap.remove(actualSelectedItemAgentOrListener);
+		tree.setDisable(true);
+		ItemType type = ItemType.REPORTING;
+		this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "reporting/agent/" + actualSelectedItemAgentOrListener));
+		handler.makeUserRequest(new ReportingAgentResponseHandler(actualSelectedItemAgentOrListener));
 	}
 	
 	private void refreshLabels() {
@@ -983,12 +989,17 @@ public class MainView implements ChangeListener<Object> {
 	      });
 	}
 	
+	private void mainTabButtonsSetDisable(boolean disabled) {
+		btnReset.setDisable(disabled);
+		btnSend.setDisable(disabled);
+		btnDelete.setDisable(disabled);
+		btnReport.setDisable(disabled);
+	}
+	
 	private void refreshMainContent(MapTreeItem item) {
 		content.getChildren().clear();
-		btnReset.setDisable(true);
-		btnSend.setDisable(true);
-		btnDelete.setDisable(true);
-		actualItemToDelete = "";
+		mainTabButtonsSetDisable(true);
+		actualSelectedItemAgentOrListener = "";
 		
 		if(item != null && item.getMap() != null) {
 			//Label tempLabel = new Label(item.getMap().toString());
@@ -1009,21 +1020,19 @@ public class MainView implements ChangeListener<Object> {
 					btnSend.setDisable(false);
 				}
 				else {
-					actualItemToDelete = item.getValue();
+					actualSelectedItemAgentOrListener = item.getValue();
 					this.model.setUserRequest(null);
 					this.btnDelete.setDisable(false);
 				}
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
 			}
 			else if(parent.getValue().equals(AGENT_STRING)){
-				//ItemType type = ItemType.AGENT;
 				deleteType = ItemType.AGENT;
 				this.model.setUserRequest(null);
 				content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
-				actualItemToDelete = item.getValue();
+				actualSelectedItemAgentOrListener = item.getValue();
 				this.btnDelete.setDisable(false);
-				//btnReset.setDisable(false);
-				//btnSend.setDisable(false);
+				btnReport.setDisable(false);
 			}
 			else if(parent.getValue().equals(STAGER_STRING)){
 				ItemType type = ItemType.STAGER;
@@ -1154,6 +1163,81 @@ public class MainView implements ChangeListener<Object> {
 		this.handler = handler;
 	}
 
+	
+	
+	public class ListenerRequestResponseHandler extends ResponseHandler{
+
+		public ListenerRequestResponseHandler() {
+			super(false); //boolean: don't display error window if there was an error
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			String s = serverResponse.getValue().toString();
+			System.out.println(s);
+			handler.getListeners();
+		}
+
+	}
+	
+	public class KillAgentResponseHandler extends ResponseHandler{
+
+		public KillAgentResponseHandler() {
+			super(false); //boolean: don't display error window if there was an error
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			try {
+				Thread.sleep(3000); //TODO handle exception instead of deleting?
+			} catch (InterruptedException e) {
+				SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+				e.printStackTrace();
+			}
+			ItemType type = ItemType.AGENT;
+			model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "agents/" + actualSelectedItemAgentOrListener));
+			handler.makeUserRequest(new DeleteAgentResponseHandler());
+		}
+
+	}
+	
+	public class DeleteAgentResponseHandler extends ResponseHandler{
+
+		public DeleteAgentResponseHandler() {
+			super(true); //boolean: don't display error window if there was an error
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			handler.getAgents();
+		}
+
+	}
+	
+	public class DeleteListenerResponseHandler extends ResponseHandler{
+
+		public DeleteListenerResponseHandler() {
+			super(false); //boolean: don't display error window if there was an error
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			handler.getListeners();
+		}
+
+	}
+	
+	public class ReportingAgentResponseHandler extends ResponseHandler{
+
+		public String actualSelectedItemAgentOrListenerToHandle;
+		public ReportingAgentResponseHandler(String actualSelectedItemAgentOrListenerToHandle) {
+			super(false); //boolean: don't display error window if there was an error
+			this.actualSelectedItemAgentOrListenerToHandle = actualSelectedItemAgentOrListenerToHandle;
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			agentsReportingMap.put(actualSelectedItemAgentOrListenerToHandle, serverResponse);
+			notifyAgentReportUpdated(actualSelectedItemAgentOrListenerToHandle);
+		}
+
+	}
+	
 	//Handle distinction between ssh and local here
 	//So listFiles and all method will handle the sftpChannel
 	//Same for mkdir
@@ -1321,7 +1405,6 @@ public class MainView implements ChangeListener<Object> {
 	    
 		public MyProgressMonitor(ArrayList<Button> allButtonsToAffect, Button cancelBtn) {
 			this.allButtonsToAffect = allButtonsToAffect;
-			//backupStyle = allButtonsToAffect.size() > 0 ? allButtonsToAffect.get(0).getStyle() : "";
 			this.cancelBtn = cancelBtn;
 		}
 		
@@ -1330,7 +1413,7 @@ public class MainView implements ChangeListener<Object> {
 				b.setDisable(true);
 			}
 	    	cancelBtn.setDisable(false);
-	    	cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });cancelBtn.getOnMouseClicked();
+	    	cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });
 	    	this.max=max;
 	    	count=0;
 	    	percent=-1;

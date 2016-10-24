@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 
+@SuppressWarnings("restriction")
 public class UIMain extends Application {
 	
 	private MainView mainController;

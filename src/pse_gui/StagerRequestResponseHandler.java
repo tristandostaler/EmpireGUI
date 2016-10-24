@@ -2,18 +2,19 @@ package pse_gui;
 import java.util.Map;
 
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.control.Alert.AlertType;
 
+@SuppressWarnings("restriction")
 public class StagerRequestResponseHandler extends ResponseHandler{
 
 	public StagerRequestResponseHandler() {
 		super(false);
 	}
+	@SuppressWarnings("unchecked")
 	@Override
 	public void baseHandleResponse(ServerResponse serverResponse) {
 				

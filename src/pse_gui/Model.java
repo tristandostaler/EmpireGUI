@@ -1,6 +1,4 @@
 package pse_gui;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class Model {
 	private ServerResponse stagerList;
