@@ -122,6 +122,7 @@ public class MainView implements ChangeListener<Object> {
 	
 	/*TO-DO section: Add more general todo here
 	 	TODO finish the todo for the files tab
+	 	TODO allow to open local directory in computer's file explorer
 		TODO add a tab for a SSH terminal
 		TODO add some automation like all 5 secondes get reporting on all agents and notify if new reports arrived
 		TODO add the possibility to make some script to automate some action
