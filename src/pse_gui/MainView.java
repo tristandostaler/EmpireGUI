@@ -1,5 +1,6 @@
 package pse_gui;
 import java.awt.Desktop;
+import java.awt.TextField;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,7 +78,8 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnLeftCancel;
 	@FXML Button btnRightCancel;
 	
-	String backupStyle;
+	String backupStyleEnabled;
+	String backupStyleDisabled;
 	
 	LoginView loginController;
 	private Stage loginStage = null;
@@ -114,6 +116,9 @@ public class MainView implements ChangeListener<Object> {
 	private ArrayList<TreeItem<ModifiedFile>> rightFileHome = new ArrayList<TreeItem<ModifiedFile>>();
 	
 	private HashMap<String, ServerResponse> agentsReportingMap = new HashMap<String, ServerResponse>();
+	
+	private boolean hasBeenAskedTooReplace, doReplace = false;
+	private Object doReplaceObject = new Object();
 	
 	/*TO-DO section: Add more general todo here
 	 	TODO finish the todo for the files tab
@@ -239,12 +244,14 @@ public class MainView implements ChangeListener<Object> {
 			}
 		});
 		
+		backupStyleEnabled = btnLeftReset.getStyle();
+		
 		setDisabledFilesButtons(true);
 		
 		btnLeftCancel.setDisable(true);
 		btnRightCancel.setDisable(true);
 		
-		backupStyle = btnLeftReset.getStyle();
+		backupStyleDisabled = btnLeftCancel.getStyle();
 		
 		initialiseLocalFileBrowser(null);
     }
@@ -694,11 +701,11 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	//TODO handle when local and not ssh
-	//TODO handler when dir and file exists
 	public void onBtnUploadClick() {
 		new Thread(new Runnable() {
 			//http://stackoverflow.com/questions/2804376/java-background-task
-		    @Override 
+		    @SuppressWarnings("rawtypes")
+			@Override 
 		    public void run() {
 		    	TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
 				System.out.println(fLocal.getValue().getAbsolutePath());
@@ -708,6 +715,8 @@ public class MainView implements ChangeListener<Object> {
 				
 				ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
 				try {
+					String toGoPath = rightFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePathConvertAsLinuxFS();
+					
 					ArrayList<Button> allButtonsToAffect = new ArrayList<Button>();
 					allButtonsToAffect.add(btnLeftReset);
 					allButtonsToAffect.add(btnUpload);
@@ -716,11 +725,54 @@ public class MainView implements ChangeListener<Object> {
 					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnLeftCancel);
 					
 					if (fLocal.getValue().isDirectory()) {
+						synchronized (doReplaceObject) {
+							hasBeenAskedTooReplace = doReplace = false;
+						}
+						
+						for (Button b : allButtonsToAffect) {
+							b.setDisable(true);
+						}
+						btnLeftCancel.setDisable(false);
+						
 						recursiveUpload(sftpChan, fLocal.getValue(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor);
+						
+						for (Button b : allButtonsToAffect) {
+					    	  b.setStyle(backupStyleEnabled);
+					    	  b.setDisable(false);
+					    	  b.requestLayout();
+					      }
+						btnLeftCancel.setDisable(true);
 					}
-					else
-						sftpChan.put(fLocal.getValue().getAbsolutePath(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor, ChannelSftp.OVERWRITE);
-					String toGoPath = rightFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePathConvertAsLinuxFS();
+					else {
+						for (Button b : allButtonsToAffect) {
+							b.setDisable(true);
+						}
+						btnLeftCancel.setDisable(false);
+						
+						Vector v;
+						try {
+							v = sftpChan.ls(fRemote.getValue().getAbsolutePathConvertAsLinuxFS() + "/" + fLocal.getValue().getName());
+						} catch (Exception e) {
+							v = new Vector();
+						}
+						if (fRemote.getValue().isFile() || v.size() == 1) {
+				    		if (showFileOverwriteConfirmationWindow(false) == ButtonType.OK){
+				    		    // user chose OK
+				    			sftpChan.put(fLocal.getValue().getAbsolutePath(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor, ChannelSftp.OVERWRITE);
+				    		}
+						}
+						else {
+							sftpChan.put(fLocal.getValue().getAbsolutePath(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor, ChannelSftp.OVERWRITE);
+						}
+						
+						for (Button b : allButtonsToAffect) {
+					    	  b.setStyle(backupStyleEnabled);
+					    	  b.setDisable(false);
+					    	  b.requestLayout();
+						}
+						btnLeftCancel.setDisable(true);
+					}
+					
 					initialiseRemoteFileBrowser(toGoPath);
 				} catch (SftpException e) {
 					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -730,14 +782,51 @@ public class MainView implements ChangeListener<Object> {
 		}).start();
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public void recursiveUpload(ChannelSftp sftpChan, ModifiedFile fLocal, String remotePath, MyProgressMonitor monitor) {
 		try {
-			sftpChan.mkdir(remotePath + "/" + fLocal.getName());
-			for (ModifiedFile f : fLocal.listFiles()) {
-				if (f.isDirectory())
-					recursiveUpload(sftpChan, f, remotePath + "/" + fLocal.getName(), monitor);
-				else 
-					sftpChan.put(f.getAbsolutePath(), remotePath + "/" + fLocal.getName(), monitor, ChannelSftp.OVERWRITE);
+			synchronized (doReplaceObject) {
+				try {
+					sftpChan.mkdir(remotePath + "/" + fLocal.getName());
+				} catch (Exception e1) {
+					//Ignore because mkdir don't work if file exists
+				}
+				for (ModifiedFile f : fLocal.listFiles()) {
+					if (f.isDirectory())
+						recursiveUpload(sftpChan, f,
+								remotePath + "/" + fLocal.getName(), monitor);
+					else {
+						Vector v;
+						try {
+							v = sftpChan.ls(remotePath + "/" + fLocal.getName() + "/" + f.getName());
+						} catch (Exception e) {
+							v = new Vector();
+						}
+						if (v.size() == 1) {
+							if (!hasBeenAskedTooReplace
+									&& showFileOverwriteConfirmationWindow(true) == ButtonType.OK) {
+								// user chose OK
+								sftpChan.put(f.getAbsolutePath(), remotePath
+										+ "/" + fLocal.getName(), monitor,
+										ChannelSftp.OVERWRITE);
+								doReplace = true;
+							} else {
+								if (doReplace)
+									sftpChan.put(
+											f.getAbsolutePath(),
+											remotePath + "/" + fLocal.getName(),
+											monitor, ChannelSftp.OVERWRITE);
+							}
+							hasBeenAskedTooReplace = true;
+						}
+						else {
+							sftpChan.put(
+										f.getAbsolutePath(),
+										remotePath + "/" + fLocal.getName(),
+										monitor, ChannelSftp.OVERWRITE);
+						}
+					}
+				}
 			}
 		} catch (SftpException e) {
 			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -746,7 +835,6 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	//TODO handle when local and not ssh
-	//TODO handle when dir and file exists
 	public void onBtnDownloadClick() {
 		doDownload(null);
 	}
@@ -762,6 +850,8 @@ public class MainView implements ChangeListener<Object> {
 				
 				ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
 				try {
+					String toGoPath = leftFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePath();
+					
 					ArrayList<Button> allButtonsToAffect = new ArrayList<Button>();
 					allButtonsToAffect.add(btnRightReset);
 					allButtonsToAffect.add(btnDownload);
@@ -771,11 +861,48 @@ public class MainView implements ChangeListener<Object> {
 					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnRightCancel);
 					
 					if (fRemote.getValue().isDirectory()) {
+						synchronized (doReplaceObject) {
+							hasBeenAskedTooReplace = doReplace = false;
+						}
+						
+						for (Button b : allButtonsToAffect) {
+							b.setDisable(true);
+						}
+						btnRightCancel.setDisable(false);
+						
 						recursiveDownload(sftpChan, fRemote.getValue(), fLocal.getValue().getAbsolutePath(), monitor);
+						
+						for (Button b : allButtonsToAffect) {
+					    	  b.setStyle(backupStyleEnabled);
+					    	  b.setDisable(false);
+					    	  b.requestLayout();
+					      }
+						btnRightCancel.setDisable(true);
 					}
-					else
-						sftpChan.get(fRemote.getValue().getPathConvertAsLinuxFS(), fLocal.getValue().getAbsolutePath(), monitor, ChannelSftp.OVERWRITE);
-					String toGoPath = leftFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePath();
+					else {
+						for (Button b : allButtonsToAffect) {
+							b.setDisable(true);
+						}
+						btnRightCancel.setDisable(false);
+						
+						if (fLocal.getValue().isFile() || new File(fLocal.getValue().getAbsolutePath() + fRemote.getValue().getName()).exists()) {
+				    		if (showFileOverwriteConfirmationWindow(false) == ButtonType.OK){
+				    		    // user chose OK
+				    			sftpChan.get(fRemote.getValue().getPathConvertAsLinuxFS(), fLocal.getValue().getAbsolutePath(), monitor, ChannelSftp.OVERWRITE);
+				    		}
+						}
+						else {
+							sftpChan.get(fRemote.getValue().getPathConvertAsLinuxFS(), fLocal.getValue().getAbsolutePath(), monitor, ChannelSftp.OVERWRITE);
+						}
+						
+						for (Button b : allButtonsToAffect) {
+					    	  b.setStyle(backupStyleEnabled);
+					    	  b.setDisable(false);
+					    	  b.requestLayout();
+					      }
+						btnRightCancel.setDisable(true);
+					}
+					
 					initialiseLocalFileBrowser(toGoPath);
 				} catch (SftpException e) {
 					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -789,12 +916,37 @@ public class MainView implements ChangeListener<Object> {
 	
 	public void recursiveDownload(ChannelSftp sftpChan, ModifiedFile fRemote, String localPath, MyProgressMonitor monitor) {
 		try {
-			new File(localPath + "/" + fRemote.getName()).mkdir();
-			for (ModifiedFile f : fRemote.listFiles()) {
-				if (f.isDirectory())
-					recursiveDownload(sftpChan, f, localPath + "/" + fRemote.getName(), monitor);
-				else 
-					sftpChan.get(f.getAbsolutePathConvertAsLinuxFS(), localPath + "/" + fRemote.getName(), monitor, ChannelSftp.OVERWRITE);
+			synchronized (doReplaceObject) {
+				new File(localPath + "/" + fRemote.getName()).mkdir();
+				for (ModifiedFile f : fRemote.listFiles()) {
+					if (f.isDirectory())
+						recursiveDownload(sftpChan, f, localPath + "/"
+								+ fRemote.getName(), monitor);
+					else {
+						if (new File(localPath + "/" + fRemote.getName() + "/" + f.getName())
+								.exists()) {
+							if (!hasBeenAskedTooReplace
+									&& showFileOverwriteConfirmationWindow(true) == ButtonType.OK) {
+								// user chose OK
+								sftpChan.get(
+										f.getAbsolutePathConvertAsLinuxFS(),
+										localPath + "/" + fRemote.getName(),
+										monitor, ChannelSftp.OVERWRITE);
+								doReplace = true;
+							} else {
+								if (doReplace)
+									sftpChan.get(
+											f.getAbsolutePathConvertAsLinuxFS(),
+											localPath + "/" + fRemote.getName(),
+											monitor, ChannelSftp.OVERWRITE);
+							}
+							hasBeenAskedTooReplace = true;
+						} else
+							sftpChan.get(f.getAbsolutePathConvertAsLinuxFS(),
+									localPath + "/" + fRemote.getName(),
+									monitor, ChannelSftp.OVERWRITE);
+					}
+				}
 			}
 		} catch (SftpException e) {
 			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -822,22 +974,43 @@ public class MainView implements ChangeListener<Object> {
 		    }
 	    }));
 	}
-	//TODO ask for dir name
+	
 	public void onBtnCreateLeftClick() {
-		TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
-		File f = new File(fLocal.getValue().getPath() + "/tmp");
-		f.mkdir();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
+				String dirName = showMkdirNameWindow();
+				if (dirName != null) {
+					File f = new File(fLocal.getValue().getPath() + "/" + dirName);
+					f.mkdir();
+				}
+				Platform.runLater(() -> { 
+					onBtnLeftRefreshClick();
+				});
+			}
+		}).start();
 	}
-	//TODO ask for dir name
+	
 	public void onBtnCreateRightClick() {
-		TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
-		ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
-		try {
-			sftpChan.mkdir(fRemote.getValue().getPathConvertAsLinuxFS() + "/tmp");
-		} catch (SftpException e) {
-			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
-			e.printStackTrace();
-		}
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
+				ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
+				try {
+					String dirName = showMkdirNameWindow();
+					if (dirName != null)
+						sftpChan.mkdir(fRemote.getValue().getPathConvertAsLinuxFS() + "/" + dirName);
+				} catch (SftpException e) {
+					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+					e.printStackTrace();
+				}
+				Platform.runLater(() -> { 
+					onBtnRightRefreshClick();
+				});
+			}
+		}).start();
 	}
 	
 	public void onBtnLeftRefreshClick() {
@@ -889,7 +1062,7 @@ public class MainView implements ChangeListener<Object> {
 		Platform.runLater(new Runnable() {
 	        @Override
 	        public void run() {
-	        	Alert alert = new Alert(AlertType.ERROR); //TODO use type confirmation to confirm overwriting in the files tab
+	        	Alert alert = new Alert(AlertType.ERROR);
 	    		alert.setTitle("Exception!");
 	    		alert.setHeaderText("An Exception occured! ");
 	    		alert.setContentText(message);
@@ -916,6 +1089,88 @@ public class MainView implements ChangeListener<Object> {
 	    		alert.showAndWait();
 	        }
 	      });
+	}
+	
+	public ButtonType showFileOverwriteConfirmationWindow(boolean askForMultipleFiles){
+		// http://code.makery.ch/blog/javafx-dialogs-official/
+		final DeleteFileConfirmationOptions options = new DeleteFileConfirmationOptions();
+		
+		Platform.runLater(() -> {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("File exists!");
+			alert.setHeaderText("File exists!");
+			alert.setContentText("Do you want to replace the file" + (askForMultipleFiles ? " and apply for all existing files" : "") + "?\n(Cancel won't cancel the whole upload)");
+			options.alertResult = alert.showAndWait().get();
+			options.windowClosed = true;
+		});
+		
+		while(!options.windowClosed)
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+				e.printStackTrace();
+			}
+		
+		return options.alertResult;
+	}
+	
+	public String showMkdirNameWindow(){
+		
+		final CreateDirectoryOptions options = new CreateDirectoryOptions();
+		
+		Platform.runLater(new Runnable() {
+	        @Override
+	        public void run() {
+	        	Alert alert = new Alert(AlertType.CONFIRMATION);
+	    		alert.setTitle("Directory creation");
+	    		alert.setHeaderText("Directory creation");
+	    		alert.setContentText("Enter the name of the new directory:");
+	    		
+	    		Label label = new Label("Directory name:");
+
+	    		javafx.scene.control.TextField textField = new javafx.scene.control.TextField("tmp");
+	    		textField.setEditable(true);
+
+	    		GridPane expContent = new GridPane();
+	    		expContent.setMaxWidth(Double.MAX_VALUE);
+	    		expContent.add(label, 0, 0);
+	    		expContent.add(textField, 0, 1);
+
+	    		// Set expandable Exception into the dialog pane.
+	    		alert.getDialogPane().setExpandableContent(expContent);
+	    		alert.getDialogPane().setExpanded(true);
+
+	    		options.canceled = (alert.showAndWait().get() == ButtonType.CANCEL ? true : false);
+	    		
+	    		options.directoryName = textField.getText();
+	    		options.windowClosed = true;
+	        }
+	      });
+		
+		while(!options.windowClosed)
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+				e.printStackTrace();
+			}
+		
+		if (options.canceled)
+			return null;
+		else
+			return options.directoryName;
+	}
+	
+	private class DeleteFileConfirmationOptions {
+		public ButtonType alertResult;
+		public boolean windowClosed = false;
+	}
+	
+	private class CreateDirectoryOptions {
+		public String directoryName;
+		public boolean windowClosed = false;
+		public boolean canceled = false;
 	}
 	
 	public void onBtnSendClick() {
@@ -953,7 +1208,6 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public void onBtnReportClick() {
-		//TODO
 		if (agentsReportingMap.containsKey(actualSelectedItemAgentOrListener))
 			agentsReportingMap.remove(actualSelectedItemAgentOrListener);
 		tree.setDisable(true);
@@ -1398,7 +1652,6 @@ public class MainView implements ChangeListener<Object> {
 	    long max=0;
 	    ArrayList<Button> allButtonsToAffect;
 	    private long percent=-1;
-	    String backupStyle;
 	    int previousOne = 0;
 	    boolean notCancelClicked = true;
 	    Button cancelBtn;
@@ -1409,10 +1662,10 @@ public class MainView implements ChangeListener<Object> {
 		}
 		
 	    public void init(int op, String src, String dest, long max){
-	    	for (Button b : allButtonsToAffect) {
+	    	/*for (Button b : allButtonsToAffect) {
 				b.setDisable(true);
-			}
-	    	cancelBtn.setDisable(false);
+			}*/
+	    	//cancelBtn.setDisable(false);
 	    	cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });
 	    	this.max=max;
 	    	count=0;
@@ -1451,10 +1704,10 @@ public class MainView implements ChangeListener<Object> {
 	    
 	    public void end(){
 	      for (Button b : allButtonsToAffect) {
-	    	  b.setStyle(backupStyle);
-	    	  b.setDisable(false);
+	    	  b.setStyle(backupStyleDisabled);
+	    	  //b.setDisable(false);
 	      }
-	      cancelBtn.setDisable(true);
+	      //cancelBtn.setDisable(true);
 	      cancelBtn.setOnMouseClicked(null); //So the GC collects it
 	    }
 	}
