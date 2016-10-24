@@ -1,6 +1,5 @@
 package pse_gui;
 import java.awt.Desktop;
-import java.awt.TextField;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -121,7 +120,9 @@ public class MainView implements ChangeListener<Object> {
 	private Object doReplaceObject = new Object();
 	
 	/*TO-DO section: Add more general todo here
-	 	TODO finish the todo for the files tab
+	 	TODO handle empire 2.0 when the REST API is fixed
+	 	TODO add the possibility to delete files
+	 	TODO fix the file upload and download button flickering issue
 	 	TODO allow to open local directory in computer's file explorer
 		TODO add a tab for a SSH terminal
 		TODO add some automation like all 5 secondes get reporting on all agents and notify if new reports arrived
@@ -598,8 +599,10 @@ public class MainView implements ChangeListener<Object> {
 											handler.getListenerOptions();
 											handler.getServerConfig();
 											//handler.initialiseFileHandler();
-											initialiseRemoteFileBrowser(null);
-											setDisabledFilesButtons(false);
+											if (model.getPowershellEmpireConnection().isSSHConnected()) {
+												initialiseRemoteFileBrowser(null);
+												setDisabledFilesButtons(false);
+											}
 										}
 										catch(Exception e) {
 											e.printStackTrace();
@@ -701,7 +704,6 @@ public class MainView implements ChangeListener<Object> {
 		}
 	}
 	
-	//TODO handle when local and not ssh
 	public void onBtnUploadClick() {
 		new Thread(new Runnable() {
 			//http://stackoverflow.com/questions/2804376/java-background-task
@@ -725,31 +727,19 @@ public class MainView implements ChangeListener<Object> {
 					
 					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnLeftCancel);
 					
+					for (Button b : allButtonsToAffect) {
+						b.setDisable(true);
+					}
+					btnLeftCancel.setDisable(false);
+					
 					if (fLocal.getValue().isDirectory()) {
 						synchronized (doReplaceObject) {
 							hasBeenAskedTooReplace = doReplace = false;
 						}
 						
-						for (Button b : allButtonsToAffect) {
-							b.setDisable(true);
-						}
-						btnLeftCancel.setDisable(false);
-						
 						recursiveUpload(sftpChan, fLocal.getValue(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor);
-						
-						for (Button b : allButtonsToAffect) {
-					    	  b.setStyle(backupStyleEnabled);
-					    	  b.setDisable(false);
-					    	  b.requestLayout();
-					      }
-						btnLeftCancel.setDisable(true);
 					}
 					else {
-						for (Button b : allButtonsToAffect) {
-							b.setDisable(true);
-						}
-						btnLeftCancel.setDisable(false);
-						
 						Vector v;
 						try {
 							v = sftpChan.ls(fRemote.getValue().getAbsolutePathConvertAsLinuxFS() + "/" + fLocal.getValue().getName());
@@ -765,14 +755,14 @@ public class MainView implements ChangeListener<Object> {
 						else {
 							sftpChan.put(fLocal.getValue().getAbsolutePath(), fRemote.getValue().getPathConvertAsLinuxFS(), monitor, ChannelSftp.OVERWRITE);
 						}
-						
-						for (Button b : allButtonsToAffect) {
-					    	  b.setStyle(backupStyleEnabled);
-					    	  b.setDisable(false);
-					    	  b.requestLayout();
-						}
-						btnLeftCancel.setDisable(true);
 					}
+					
+					for (Button b : allButtonsToAffect) {
+				    	  b.setStyle(backupStyleEnabled);
+				    	  b.setDisable(false);
+				    	  b.requestLayout();
+				      }
+					btnLeftCancel.setDisable(true);
 					
 					initialiseRemoteFileBrowser(toGoPath);
 				} catch (SftpException e) {
@@ -835,7 +825,6 @@ public class MainView implements ChangeListener<Object> {
 		}
 	}
 	
-	//TODO handle when local and not ssh
 	public void onBtnDownloadClick() {
 		doDownload(null);
 	}
@@ -861,31 +850,19 @@ public class MainView implements ChangeListener<Object> {
 					
 					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnRightCancel);
 					
+					for (Button b : allButtonsToAffect) {
+						b.setDisable(true);
+					}
+					btnRightCancel.setDisable(false);
+					
 					if (fRemote.getValue().isDirectory()) {
 						synchronized (doReplaceObject) {
 							hasBeenAskedTooReplace = doReplace = false;
 						}
 						
-						for (Button b : allButtonsToAffect) {
-							b.setDisable(true);
-						}
-						btnRightCancel.setDisable(false);
-						
 						recursiveDownload(sftpChan, fRemote.getValue(), fLocal.getValue().getAbsolutePath(), monitor);
-						
-						for (Button b : allButtonsToAffect) {
-					    	  b.setStyle(backupStyleEnabled);
-					    	  b.setDisable(false);
-					    	  b.requestLayout();
-					      }
-						btnRightCancel.setDisable(true);
 					}
 					else {
-						for (Button b : allButtonsToAffect) {
-							b.setDisable(true);
-						}
-						btnRightCancel.setDisable(false);
-						
 						if (fLocal.getValue().isFile() || new File(fLocal.getValue().getAbsolutePath() + fRemote.getValue().getName()).exists()) {
 				    		if (showFileOverwriteConfirmationWindow(false) == ButtonType.OK){
 				    		    // user chose OK
@@ -895,14 +872,14 @@ public class MainView implements ChangeListener<Object> {
 						else {
 							sftpChan.get(fRemote.getValue().getPathConvertAsLinuxFS(), fLocal.getValue().getAbsolutePath(), monitor, ChannelSftp.OVERWRITE);
 						}
-						
-						for (Button b : allButtonsToAffect) {
-					    	  b.setStyle(backupStyleEnabled);
-					    	  b.setDisable(false);
-					    	  b.requestLayout();
-					      }
-						btnRightCancel.setDisable(true);
 					}
+					
+					for (Button b : allButtonsToAffect) {
+				    	  b.setStyle(backupStyleEnabled);
+				    	  b.setDisable(false);
+				    	  b.requestLayout();
+				      }
+					btnRightCancel.setDisable(true);
 					
 					initialiseLocalFileBrowser(toGoPath);
 				} catch (SftpException e) {
