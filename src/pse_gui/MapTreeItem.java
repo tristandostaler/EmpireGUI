@@ -1,11 +1,11 @@
 package pse_gui;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javafx.scene.control.TreeItem;
 
+@SuppressWarnings("restriction")
 public class MapTreeItem extends TreeItem<String>{
 
 	private HashMap<String, Object> map;
@@ -22,6 +22,7 @@ public class MapTreeItem extends TreeItem<String>{
 		this.map = map;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public ArrayList<Field> getFieldList(){
 		ArrayList<Field> fieldList = new ArrayList<Field>();
 		Map<String, Object> fieldMap = (Map<String, Object>)map.get("options");

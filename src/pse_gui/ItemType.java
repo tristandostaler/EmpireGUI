@@ -5,7 +5,8 @@ public enum ItemType {
 	AGENT,
 	STAGER, 
 	LISTENER,
-	CREATE_LISTENER;
+	CREATE_LISTENER,
+	REPORTING;
 	
 
     public String getStringValue() {

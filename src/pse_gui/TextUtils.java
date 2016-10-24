@@ -3,6 +3,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
+@SuppressWarnings("restriction")
 public class TextUtils {
 
 static final Text helper;

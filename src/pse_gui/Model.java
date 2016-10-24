@@ -1,6 +1,4 @@
 package pse_gui;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class Model {
 	private ServerResponse stagerList;
@@ -9,6 +7,7 @@ public class Model {
 	private ServerResponse moduleList;
 	private UserRequest userRequest;
 	private ServerResponse listenerOptionsList;
+	private ServerResponse serverConfigList;
 	
 	private SSHInformations SSHInformations;
 	private PowershellEmpireInformations powershellEmpireInformations;
@@ -107,5 +106,13 @@ public class Model {
 
 	public void setActualRemoteDirectory(String actualRemoteDirectory) {
 		this.actualRemoteDirectory = actualRemoteDirectory;
+	}
+
+	public ServerResponse getServerConfigList() {
+		return serverConfigList;
+	}
+
+	public void setServerConfigList(ServerResponse serverConfigList) {
+		this.serverConfigList = serverConfigList;
 	}
 }

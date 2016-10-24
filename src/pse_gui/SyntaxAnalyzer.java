@@ -143,6 +143,7 @@ public class SyntaxAnalyzer {
 		return keyValueMap;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private List<Object>parseList(JSONArray array, String parentKey){
 		List<Object> output = new ArrayList<Object>();
 		Iterator<Object> iterator = array.toList().iterator();

@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 
+@SuppressWarnings("restriction")
 public class UIMain extends Application {
 	
 	private MainView mainController;
@@ -27,7 +28,7 @@ public class UIMain extends Application {
 			@Override
 			public void handle(WindowEvent event) {
 				if(mainController != null) {
-					mainController.disconnect();
+					mainController.disconnectDoAction();
 				}	
 			}
 		});

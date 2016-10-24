@@ -1,7 +1,7 @@
 package pse_gui;
 import javafx.event.Event;
-import javafx.event.EventType;
 
+@SuppressWarnings({ "restriction", "serial" })
 public class ConnectEvent extends Event {
 	
 	public ConnectEvent() {

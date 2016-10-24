@@ -9,6 +9,7 @@ Jean-Philippe Champoux
 Guillaume Beaudry  
 Frédérick Lebel  
 
+
 EmpireGUI offers a GUI for the projet PowerShell Empire (pse). Almost everything is dynamic so it should support all releases of pse (if they don't modify the architecture too much). There is something like 3 words hard coded except for the json variables types. It has been coded in java with the goal of supporting all platforms. We plan on doing the gui for android too (by sharing parts of the code).
 
 EmpireGUI can be used to create Listeners, delete Listeners, launch modules on Agents (and receive the output when available) and use stagers (and receive the output when available).
@@ -30,6 +31,16 @@ EmpireGUI also display info when available. In this example, we received the lau
 
 
 More screenShots are available in the folder "ScreenShots".
+
+
+Actual version: 1.2  
+Features added:  
+
+* You can now give the token directly (fixes a bug in the empire server)
+* There is now a Files tab where you can make basic file handling between the server and the client.
+* You can now get the reports for every agents
+* A lot of fixes and refactoring
+* Now the TODO list is in the top of the MainView class in MainView.java just before the constructor
 
 To fix the import problem of javafx on ubuntu, do "sudo apt-get install openjfx".
 Source: http://stackoverflow.com/questions/32630354/the-import-javafx-cannot-be-resolved

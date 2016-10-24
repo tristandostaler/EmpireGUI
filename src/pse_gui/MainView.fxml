@@ -36,79 +36,80 @@
 				<SplitPane fx:id="horizontalSplitPane" 
 						   orientation="horizontal"
 						   styleClass="splitPane">
-				<VBox fx:id="leftContainer"  
-					  styleClass="container">
-				<Label text="Empire components" 
-					   styleClass="boldLabel"/>
-		         <TreeView fx:id="tree" 
-		         		   VBox.vgrow="always"
-				           showRoot="false">
-		          <cellFactory></cellFactory>
-		          </TreeView>
-		          </VBox>
-		          <AnchorPane fx:id="rightContainer">
-			          <SplitPane fx:id="verticalSplitPane"
-			          		     orientation="vertical"   
-			          		     styleClass="noBorderSplitPane"      
-			          		     AnchorPane.topAnchor="0.0" 
-					             AnchorPane.bottomAnchor="0.0"
-					             AnchorPane.leftAnchor="0.0" 
-					             AnchorPane.rightAnchor="0.0">
-					             
-			          	<VBox fx:id="centerContainer">
-				          	<HBox styleClass="breadCrumbContainer">
-				          		<BreadCrumbBar fx:id="breadCrumb"/>
-				          	</HBox>
-				          	<ScrollPane fitToHeight="true" VBox.vgrow="always">
-					          	<VBox fx:id="content" 
-					          	      styleClass="container"
-					          	      VBox.vgrow="always"/>
-					        </ScrollPane>
-			          	</VBox>
-			          	
-			          	<HBox fx:id="bottomContainer" 
-			          		  styleClass="bottomPane">
-			          		<VBox HBox.hgrow="always">
-				          		<Label text="Past events"
-				          			   styleClass="boldLabel"/>
-			          			<TextArea fx:id="logTextArea" 
-					          			  text=""
-					          			  editable="false"
-					          			  VBox.vgrow="always"/>
-				          	</VBox>
-		
-		          			<VBox fx:id="buttonsContainer" 
-		          				  styleClass="bottomPane">
-			          			<Button fx:id="btnSend"
-			          					text="Send"
-			          					styleClass="button-raised"
-					          			onAction="#onBtnSendClick"/>
-			          			<Button fx:id="btnReset"
-			          					text="Reset" 
-			          					styleClass="button-raised"
-					          			onAction="#onBtnResetClick"/>
-					          	<Button fx:id="btnDelete"
-					          			text="Delete" 
-			          					styleClass="button-raised"
-					          			onAction="#onBtnDeleteClick"/>
-		          			</VBox>
-			          	</HBox>
-			          </SplitPane>
-				  </AnchorPane>
+					<VBox fx:id="leftContainer"  
+						  styleClass="container">
+						<Label text="Empire components" 
+							   styleClass="boldLabel"/>
+				         <TreeView fx:id="tree" 
+				         		   VBox.vgrow="always"
+						           showRoot="false">
+				          	<cellFactory></cellFactory>
+				          </TreeView>
+			          </VBox>
+			          <AnchorPane>
+				          <SplitPane fx:id="verticalSplitPane"
+				          		     orientation="vertical"   
+				          		     styleClass="noBorderSplitPane"      
+				          		     AnchorPane.topAnchor="0.0" 
+						             AnchorPane.bottomAnchor="0.0"
+						             AnchorPane.leftAnchor="0.0" 
+						             AnchorPane.rightAnchor="0.0">
+						             
+					          	<VBox>
+						          	<HBox styleClass="breadCrumbContainer">
+						          		<BreadCrumbBar fx:id="breadCrumb"/>
+						          	</HBox>
+						          	<ScrollPane fitToHeight="true" VBox.vgrow="always">
+							          	<VBox fx:id="content" 
+							          	      styleClass="container"
+							          	      VBox.vgrow="always"/>
+							        </ScrollPane>
+					          	</VBox>
+				          	
+					          	<HBox fx:id="bottomContainer" 
+					          		  styleClass="bottomPane">
+					          		<VBox HBox.hgrow="always">
+						          		<Label text="Past events"
+						          			   styleClass="boldLabel"/>
+					          			<TextArea fx:id="logTextArea" 
+							          			  text=""
+							          			  editable="false"
+							          			  VBox.vgrow="always"/>
+						          	</VBox>
+				
+				          			<VBox styleClass="bottomPane">
+					          			<Button fx:id="btnSend"
+					          					text="Send"
+					          					styleClass="button-raised"
+							          			onAction="#onBtnSendClick"/>
+					          			<Button fx:id="btnReset"
+					          					text="Reset" 
+					          					styleClass="button-raised"
+							          			onAction="#onBtnResetClick"/>
+							          	<Button fx:id="btnDelete"
+							          			text="Delete" 
+					          					styleClass="button-raised"
+							          			onAction="#onBtnDeleteClick"/>
+					          			<Button fx:id="btnReport"
+							          			text="Report" 
+					          					styleClass="button-raised"
+							          			onAction="#onBtnReportClick"/>
+				          			</VBox>
+					          	</HBox>
+				          </SplitPane>
+					  </AnchorPane>
 				</SplitPane>
 			</Tab>
 			<Tab closable="false" text="Files">
-				<SplitPane fx:id="filesHorizontalSplitPane" 
-						   orientation="horizontal"
+				<SplitPane orientation="horizontal"
 						   styleClass="splitPane">
 						   
-						<VBox fx:id="leftFileContainer">
+						<VBox>
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="leftFileBreadCrumb"/>
 				          	</HBox>
 				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
-					          	<VBox fx:id="leftFilecontent" 
-					          	      styleClass="container"
+					          	<VBox styleClass="container"
 					          	      VBox.vgrow="always">
 				          	    	<TreeView fx:id="leftFileTree" 
 					         		   VBox.vgrow="always"
@@ -116,15 +117,32 @@
 							        </TreeView>
 					            </VBox>
 					        </ScrollPane>
+					        <HBox styleClass="breadCrumbContainer">
+					        	<Button fx:id="btnLeftReset"
+								    text="Refresh"
+									styleClass="button-raised"
+								    onAction="#onBtnLeftRefreshClick"/>
+					        	<Button fx:id="btnUpload"
+								    text="Upload"
+									styleClass="button-raised"
+								    onAction="#onBtnUploadClick"/>
+							    <Button fx:id="btnLeftMkdir"
+								    text="mkdir"
+									styleClass="button-raised"
+								    onAction="#onBtnCreateLeftClick"/>
+							    <Button fx:id="btnLeftCancel"
+								    text="Cancel"
+									styleClass="button-raised"
+								    />
+					        </HBox>
 			          	</VBox>
 			          	
-			          	<VBox fx:id="rightFileContainer">
+			          	<VBox>
 				          	<HBox styleClass="breadCrumbContainer">
 				          		<BreadCrumbBar fx:id="rightFileBreadCrumb"/>
 				          	</HBox>
 				          	<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
-					          	<VBox fx:id="rightFilecontent" 
-					          	      styleClass="container"
+					          	<VBox styleClass="container"
 					          	      VBox.vgrow="always">
 					          	    <TreeView fx:id="rightFileTree" 
 					         		   VBox.vgrow="always"
@@ -132,6 +150,28 @@
 							   		</TreeView>
 							   </VBox>
 					        </ScrollPane>
+					        <HBox styleClass="breadCrumbContainer">
+					        	<Button fx:id="btnRightReset"
+								    text="Refresh"
+									styleClass="button-raised"
+								    onAction="#onBtnRightRefreshClick"/>
+					        	<Button fx:id="btnDownload"
+								    text="Download"
+									styleClass="button-raised"
+								    onAction="#onBtnDownloadClick"/>
+								<Button fx:id="btnDownloadAndOpen"
+								    text="Open"
+									styleClass="button-raised"
+								    onAction="#onBtnDownloadAndOpenClick"/>
+							    <Button fx:id="btnRightMkdir"
+								    text="mkdir"
+									styleClass="button-raised"
+								    onAction="#onBtnCreateRightClick"/>
+								<Button fx:id="btnRightCancel"
+								    text="Cancel"
+									styleClass="button-raised"
+								    />
+					        </HBox>
 			          	</VBox>
 			   </SplitPane>
 			</Tab>

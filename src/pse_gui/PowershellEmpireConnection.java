@@ -55,7 +55,7 @@ public class PowershellEmpireConnection {
 		
 		try {
 			int counter = 30;
-			while(!this.sshConn.isConnected())
+			while(!this.sshConn.isConnected()) //TODO handle when can never connect?
 				Thread.sleep(1000);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
@@ -284,7 +284,6 @@ class SSHConnectionHandler {
 	private Integer LOCAL_SERVICE_PORT = 8080;
 	private final Integer MAXIMUM_TIMEOUT = 3600; //30000;
 	private Session session;
-	private Boolean shutdown = false;
 	private ChannelSftp sftpChannel;
 	
 	public SSHConnectionHandler(PowershellEmpireConnection pseConn){

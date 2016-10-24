@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -18,6 +17,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
+@SuppressWarnings("restriction")
 public class LoginView {
 
 	public static EventType<ConnectEvent> CONNECT = new EventType<ConnectEvent>("CONNECT");

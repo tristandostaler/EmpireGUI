@@ -1,12 +1,8 @@
 package pse_gui;
-import java.io.File;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
-import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 
 
 public class RequestHandler {
@@ -127,6 +123,19 @@ public class RequestHandler {
 
 	}
 	
+	private class ServerConfigResponseHandler extends ResponseHandler{
+
+		public ServerConfigResponseHandler(Boolean bypassIfError){
+			super(bypassIfError);
+		}
+		
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			model.setServerConfigList(serverResponse);
+		}
+
+	}
+	
 	public void getModules() {
 		if(model.getPowershellEmpireConnection() != null) {
 			Communication comm = new Communication(Communication.METHODS.GET, "modules", new ModuleResponseHandler(true), null);
@@ -158,6 +167,13 @@ public class RequestHandler {
 	public void getListenerOptions() {
 		if(model.getPowershellEmpireConnection() != null) {
 			Communication comm = new Communication(Communication.METHODS.GET, "listeners/options", new ListenerOptionsResponseHandler(false), null);
+			model.getPowershellEmpireConnection().send(comm);
+		}
+	}
+	
+	public void getServerConfig() {
+		if(model.getPowershellEmpireConnection() != null) {
+			Communication comm = new Communication(Communication.METHODS.GET, "config", new ServerConfigResponseHandler(false), null);
 			model.getPowershellEmpireConnection().send(comm);
 		}
 	}
@@ -200,14 +216,4 @@ public class RequestHandler {
 		this.ui.notifyLocalFileUpdated();
 		this.ui.notifyRemoteFileUpdated();
 	}*/
-	
-	public void getServerFiles(String directory){
-		if(this.model.getPowershellEmpireConnection().isSSHConnected()) {
-			ChannelSftp sftpChann = this.model.getPowershellEmpireConnection().getSFTPChannel();
-			
-		}
-		else {
-			
-		}
-	}
 }
