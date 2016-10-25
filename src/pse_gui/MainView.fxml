@@ -130,6 +130,10 @@
 								    text="mkdir"
 									styleClass="button-raised"
 								    onAction="#onBtnCreateLeftClick"/>
+					        </HBox>
+					        <HBox styleClass="breadCrumbContainer">
+					        	<ProgressBar fx:id="leftProgressBar" HBox.hgrow="always" maxWidth="Infinity" progress="0.0" maxHeight="30" >
+					        	</ProgressBar>
 							    <Button fx:id="btnLeftCancel"
 								    text="Cancel"
 									styleClass="button-raised"
@@ -167,10 +171,14 @@
 								    text="mkdir"
 									styleClass="button-raised"
 								    onAction="#onBtnCreateRightClick"/>
-								<Button fx:id="btnRightCancel"
+					        </HBox>
+					        <HBox styleClass="breadCrumbContainer">
+					        	<ProgressBar fx:id="rightProgressBar" HBox.hgrow="always" maxWidth="Infinity" progress="0.0" maxHeight="30" >
+					        	</ProgressBar>
+							    <Button fx:id="btnRightCancel"
 								    text="Cancel"
 									styleClass="button-raised"
-								    />
+								/>
 					        </HBox>
 			          	</VBox>
 			   </SplitPane>

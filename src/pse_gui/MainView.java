@@ -76,6 +76,8 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnRightMkdir;
 	@FXML Button btnLeftCancel;
 	@FXML Button btnRightCancel;
+	@FXML javafx.scene.control.ProgressBar leftProgressBar;
+	@FXML javafx.scene.control.ProgressBar rightProgressBar;
 	
 	String backupStyleEnabled;
 	String backupStyleDisabled;
@@ -122,7 +124,6 @@ public class MainView implements ChangeListener<Object> {
 	/*TO-DO section: Add more general todo here
 	 	TODO handle empire 2.0 when the REST API is fixed
 	 	TODO add the possibility to delete files
-	 	TODO fix the file upload and download button flickering issue
 	 	TODO allow to open local directory in computer's file explorer
 		TODO add a tab for a SSH terminal
 		TODO add some automation like all 5 secondes get reporting on all agents and notify if new reports arrived
@@ -725,7 +726,7 @@ public class MainView implements ChangeListener<Object> {
 					allButtonsToAffect.add(btnUpload);
 					allButtonsToAffect.add(btnLeftMkdir);
 					
-					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnLeftCancel);
+					MyProgressMonitor monitor = new MyProgressMonitor(leftProgressBar, btnLeftCancel);
 					
 					for (Button b : allButtonsToAffect) {
 						b.setDisable(true);
@@ -848,7 +849,7 @@ public class MainView implements ChangeListener<Object> {
 					allButtonsToAffect.add(btnDownloadAndOpen);
 					allButtonsToAffect.add(btnRightMkdir);
 					
-					MyProgressMonitor monitor = new MyProgressMonitor(allButtonsToAffect, btnRightCancel);
+					MyProgressMonitor monitor = new MyProgressMonitor(rightProgressBar, btnRightCancel);
 					
 					for (Button b : allButtonsToAffect) {
 						b.setDisable(true);
@@ -1628,14 +1629,14 @@ public class MainView implements ChangeListener<Object> {
 	public class MyProgressMonitor implements SftpProgressMonitor {
 	    long count=0;
 	    long max=0;
-	    ArrayList<Button> allButtonsToAffect;
+	    javafx.scene.control.ProgressBar progressBarToUse;
 	    private long percent=-1;
 	    int previousOne = 0;
 	    boolean notCancelClicked = true;
 	    Button cancelBtn;
 	    
-		public MyProgressMonitor(ArrayList<Button> allButtonsToAffect, Button cancelBtn) {
-			this.allButtonsToAffect = allButtonsToAffect;
+		public MyProgressMonitor(javafx.scene.control.ProgressBar progressBarToUse, Button cancelBtn) {
+			this.progressBarToUse = progressBarToUse;
 			this.cancelBtn = cancelBtn;
 		}
 		
@@ -1646,6 +1647,7 @@ public class MainView implements ChangeListener<Object> {
 	    	//cancelBtn.setDisable(false);
 	    	cancelBtn.setOnMouseClicked(event -> { notCancelClicked=false; });
 	    	this.max=max;
+	    	progressBarToUse.setProgress(0);
 	    	count=0;
 	    	percent=-1;
 	    }
@@ -1658,7 +1660,11 @@ public class MainView implements ChangeListener<Object> {
 	      
 	      if(percent>=100){ return false; }
 	      
-	      int getValueNbre = (int) (percent * (long)allButtonsToAffect.size() / 100.0);
+	      double progress = (double)percent / 100.0;
+	      
+	      progressBarToUse.setProgress(progress);
+	      
+	      /*int getValueNbre = (int) (percent * (long)allButtonsToAffect.size() / 100.0);
 	      int alphaValueNbre = (int) (percent * 256 / 100);
     	  if (alphaValueNbre > previousOne) {
     		  String green = Integer.toHexString(alphaValueNbre);
@@ -1670,7 +1676,7 @@ public class MainView implements ChangeListener<Object> {
     		  }
 	    	  allButtonsToAffect.get(getValueNbre).setStyle("-fx-base: #" + (inverseGreenForRed.length() == 1 ? "0" + inverseGreenForRed : inverseGreenForRed) + (green.length() == 1 ? "0" + green : green) + "00;");
 	      }
-    	  previousOne = alphaValueNbre;
+    	  previousOne = alphaValueNbre;*/
 	      
     	 /* if (notCancelClicked)
     		  System.out.println("Uploading...");
@@ -1681,12 +1687,13 @@ public class MainView implements ChangeListener<Object> {
 	    }
 	    
 	    public void end(){
-	      for (Button b : allButtonsToAffect) {
+	      /*for (Button b : allButtonsToAffect) {
 	    	  b.setStyle(backupStyleDisabled);
 	    	  //b.setDisable(false);
-	      }
+	      }*/
+	    	progressBarToUse.setProgress(0);
 	      //cancelBtn.setDisable(true);
-	      cancelBtn.setOnMouseClicked(null); //So the GC collects it
+	    	cancelBtn.setOnMouseClicked(null); //So the GC collects it
 	    }
 	}
 }
