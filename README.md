@@ -33,7 +33,7 @@ EmpireGUI also display info when available. In this example, we received the lau
 More screenShots are available in the folder "ScreenShots".
 
 
-Actual version: 1.2  
+Actual version: 1.2.1  
 Features added:  
 
 * You can now give the token directly (fixes a bug in the empire server)
