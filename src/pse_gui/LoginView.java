@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -15,6 +16,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 
 @SuppressWarnings("restriction")
@@ -32,6 +34,7 @@ public class LoginView {
 	@FXML Label passwordLbl;
 	@FXML TextField address;
 	@FXML TextField port;
+	@FXML Label txtPortLbl;
 	@FXML CheckBox checkBox;
 	@FXML TextField sshUsername;
 	@FXML PasswordField sshPassword;
@@ -59,10 +62,9 @@ public class LoginView {
 	private final String TOKEN = "TOKEN";
 	private final String SEPARATOR = "=";
 	private final String NEW_LINE = System.getProperty("line.separator");
-	
 
 	public LoginView() {
-		
+
 	}
 	
 	public boolean isRemote() {
@@ -84,7 +86,9 @@ public class LoginView {
 			infos.setPort(Integer.parseInt(port.getText()));
 		}
 		catch (NumberFormatException e) {
-			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow("One or more information in the Powershell Empire informations is invalid", e);
+			infos.setInfoHasError(true);
+			SharedCentralisedClass.getInstance().showStackTraceInAlertWindow("The port number in the Powershell Empire informations is invalid", e);
+			//SharedCentralisedClass.getInstance().showStackTraceInAlertWindow("One or more information in the Powershell Empire informations is invalid", e);
 		}
 		return infos;
 	}
@@ -148,7 +152,6 @@ public class LoginView {
 				setUseTokenInsteadDisabled(!arg2);
 			}
 		});
-		
 	}
 	
 	public void onBtnCancelClick() {
@@ -156,7 +159,22 @@ public class LoginView {
 	}
 	
 	public void onBtnLoginClick() {
-		fireConnect();
+		boolean cantParseInt = false;
+		try {
+			Integer.parseInt(port.getText());
+		} catch(Exception ex) {
+			cantParseInt = true;
+		}
+		if(cantParseInt)
+			port.setStyle("-fx-border-color: red");
+		if((!address.isDisabled() && address.getText().trim().equals("")))
+			address.setStyle("-fx-border-color: red");
+
+		if(!((!address.isDisabled() && address.getText().trim().equals("")) || port.getText().trim().equals("") || cantParseInt)) {
+			port.setStyle("-fx-border-color: white");
+			address.setStyle("-fx-border-color: white");
+			fireConnect();
+		}
 	}
 	
 	private void setUseTokenInsteadDisabled(boolean disabled) {
@@ -170,6 +188,8 @@ public class LoginView {
 	}
 	
 	private void setRemoteValuesDisabled(boolean disabled) {
+		address.setDisable(!disabled);
+
 		txtSshUsername.setDisable(disabled);
 		txtSshPassword.setDisable(disabled);
 		txtSshServerAddress.setDisable(disabled);

@@ -570,6 +570,8 @@ public class MainView implements ChangeListener<Object> {
 								
 								try {
 									PowershellEmpireInformations infos = loginController.getInformations();
+									if(infos.isInfoHasError())
+										return null;
 									SSHInformations sshInfos;
 									if(loginController.isRemote())
 										sshInfos = loginController.getSSHInformations();
@@ -633,20 +635,19 @@ public class MainView implements ChangeListener<Object> {
 							loginController.setIsLoading(false);
 							loginStage.hide();
 							
-							PowershellEmpireInformations infos = model.getPowershellEmpireInformations();
-							SSHInformations sshInfos = model.getSSHInformations();
-							
-							logTextArea.appendText("> Login requested..\n");
-							logTextArea.appendText("> user: " + infos.getUserName() + "\n");
-							logTextArea.appendText("> host: " + infos.getHost() + "\n");
-							logTextArea.appendText("> port: " + infos.getPort() + "\n");
-							
-							if(loginController.isRemote()) {
-								
-								logTextArea.appendText("> SSH enabled..");
-								logTextArea.appendText("> SSH user: " + sshInfos.getUserName() + "\n");
-								logTextArea.appendText("> SSH host: " + sshInfos.getHost() + "\n");
-								logTextArea.appendText("> SSH port: " + sshInfos.getPort() + "\n");
+							if (model.getPowershellEmpireInformations() != null) {
+								PowershellEmpireInformations infos = model.getPowershellEmpireInformations();
+								SSHInformations sshInfos = model.getSSHInformations();
+								logTextArea.appendText("> Login requested..\n");
+								logTextArea.appendText("> user: " + infos.getUserName() + "\n");
+								logTextArea.appendText("> host: " + infos.getHost() + "\n");
+								logTextArea.appendText("> port: " + infos.getPort() + "\n");
+								if (loginController.isRemote()) {
+									logTextArea.appendText("> SSH enabled..");
+									logTextArea.appendText("> SSH user: " + sshInfos.getUserName() + "\n");
+									logTextArea.appendText("> SSH host: " + sshInfos.getHost() + "\n");
+									logTextArea.appendText("> SSH port: " + sshInfos.getPort() + "\n");
+								} 
 							}
 						} catch (Exception e) {
 							SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
@@ -1003,7 +1004,7 @@ public class MainView implements ChangeListener<Object> {
 	}
 	
 	public void disconnectDoAction() {
-		if(model.getPowershellEmpireConnection() != null && model.getPowershellEmpireConnection().isConnected()) {
+		if(model.getPowershellEmpireConnection() != null) { //model.getPowershellEmpireConnection().isConnected()
 			model.getPowershellEmpireConnection().disconnect();
 			resetTreeView();
 			resetMainContent();

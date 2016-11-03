@@ -47,10 +47,10 @@ public class SharedCentralisedClass {
 	}
 	
 	public void showStackTraceInAlertWindow(String message, String trace){
+		System.out.println("Exception: " + message + "\nTrace: " + trace);
 		if(this.mainView != null)
 			this.mainView.showStackTraceInAlertWindow(message, trace);
 		else {
-			System.out.println("Exception: " + message + "\nTrace: " + trace);
 			synchronized(queuedStackTraceList) {
 				queuedStackTraceList.add(new StackTraceQueueObject(message, trace));
 			}
@@ -62,6 +62,7 @@ public class SharedCentralisedClass {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
+		e.printStackTrace();
 		showStackTraceInAlertWindow(message, sw.toString());
 	}
 	
