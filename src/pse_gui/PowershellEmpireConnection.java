@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.SocketException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -13,13 +14,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Properties;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,8 +50,10 @@ public class PowershellEmpireConnection {
 		
 		try {
 			int counter = 30;
-			while(!this.sshConn.isConnected()) //TODO handle when can never connect?
+			while(!this.sshConn.isConnected()) { //TODO handle when can never connect?
 				Thread.sleep(1000);
+				System.out.print("Sleeping in PowershellEmpireConnection.ctor for 1 sec.");
+			}
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
@@ -142,12 +139,12 @@ public class PowershellEmpireConnection {
 	}
 	
 	protected String sendRequest(Communication.METHODS method, String endPoint, String postData) {
-		if(isSSH && !isSSHConnected())
-			return "Not connected to ssh server";
-		
-		URL url;
-		
 		try {
+			if(isSSH && !isSSHConnected())
+				throw new Exception("Not connected to ssh server");
+			
+			URL url;
+		
 			if(this.isSSH){
 				if(token != null && !token.equals("None"))
 					url = new URL("https://127.0.0.1:8080/api/" + endPoint + "?token=" + token);
@@ -218,16 +215,31 @@ public class PowershellEmpireConnection {
 				
 				return line;
 		    }
-		   
-		} catch (Exception e) {
+
+		}
+		catch (SocketException | SSLHandshakeException e) {
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);
 			e.printStackTrace(pw);
 			//e.printStackTrace();
-			String st = sw.toString().replace("\r\n", "\\n"); //Replace so JSON can hadle it!
-			SharedCentralisedClass.getInstance().writeTextToLogArea(st);
+			//e.printStackTrace();
+			String st = sw.toString().replace("\n", "\\n"); //Replace so JSON can handle it!
+			//SharedCentralisedClass.getInstance().writeTextToLogArea(st);
+			//SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 			//System.out.println(st);
-			return "{ 'Exception': [{ 'Message': 'Exception in sendRequest: " + e.getMessage() + "', 'Trace': '" + st + "' }] }";
+			return "{ \"Exception\": [{ \"Message\": \"Bad Empire Address or Port? --> Exception in sendRequest: " + e.getMessage().replace("\n", "\\n") + "\", \"Trace\": \"" + st + "\" }] }";
+		}
+		catch (Exception e) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			//e.printStackTrace();
+			//e.printStackTrace();
+			String st = sw.toString().replace("\n", "\\n"); //Replace so JSON can handle it!
+			//SharedCentralisedClass.getInstance().writeTextToLogArea(st);
+			//SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+			//System.out.println(st);
+			return "{ \"Exception\": [{ \"Message\": \"Exception in sendRequest: " + e.getMessage().replace("\n", "\\n") + "\", \"Trace\": \"" + st + "\" }] }";
 		}
 	}
 	
@@ -326,7 +338,7 @@ class SSHConnectionHandler {
 	}
 	
 	public void stop(){
-		this.session.disconnect();
 		sftpChannel.exit();
+		this.session.disconnect();
 	}
 }

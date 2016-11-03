@@ -8,9 +8,10 @@ public class PowershellEmpireInformations {
 	private boolean isTokenInstead;
 	private String host;
 	private int port;
+	private boolean infoHasError = false;
 	
 	public PowershellEmpireInformations(){
-		
+		setInfoHasError(false);
 	}
 	
 	public String getUserName() {
@@ -48,6 +49,14 @@ public class PowershellEmpireInformations {
 	}
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public boolean isInfoHasError() {
+		return infoHasError;
+	}
+
+	public void setInfoHasError(boolean infoHasError) {
+		this.infoHasError = infoHasError;
 	}
 	
 }

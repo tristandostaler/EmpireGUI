@@ -35,7 +35,7 @@
 			<TextField fx:id="address" />
 		</VBox>
 		<VBox styleClass="vbox" HBox.hgrow="always">
-			<Label text="Port" />
+			<Label fx:id="txtPortLbl" text="Port" />
 			<TextField fx:id="port" />
 		</VBox>	
 	</HBox>
