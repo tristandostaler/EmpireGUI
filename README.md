@@ -33,14 +33,14 @@ EmpireGUI also display info when available. In this example, we received the lau
 More screenShots are available in the folder "ScreenShots".
 
 # Installation, usage and supported OS
-To use EmpireGUI, you need to have Java >= 8 installed on your OS: 
-https://www.java.com/fr/download/
-https://www.java.com/fr/download/manual.jsp
+To use EmpireGUI, you need to have Java >= 8 installed on your OS:  
+https://www.java.com/fr/download/  
+https://www.java.com/fr/download/manual.jsp  
 
-You can then directly download EmpireGUI.jar in the directory Builds (or clone the repo and go in Builds/). In Windows, you simply double click the EmpireGUI.jar. In Linux, you need to make the jar executable before you can double click it.
-Be sure you have the java binary in your Path.
+You can then directly download EmpireGUI.jar in the directory Builds (or clone the repo and go in Builds/). In Windows, you simply double click the EmpireGUI.jar. In Linux, you need to make the jar executable before you can double click it.  
+Be sure you have the java binary in your Path.  
 
-EmpireGUI was tested on Windows 8, 8.1 and 10, on Ubuntu and on Kali Linux. Normally, any windows/linux supporting Java >= 8 should be alright.
+EmpireGUI was tested on Windows 8, 8.1 and 10, on Ubuntu and on Kali Linux. Normally, any windows/linux supporting Java >= 8 should be alright.  
 
 
 # Actual version: 1.2.1  
