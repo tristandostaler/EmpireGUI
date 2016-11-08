@@ -2,7 +2,7 @@
 This is a GUI for the projet https://github.com/PowerShellEmpire/Empire
 
 # Important notice!
-We are goin to redo the project in ASP NET Core with the new .NET Core (multi-platform).  
+We are thinking about redoing the project in ASP NET Core with the new .NET Core (multi-platform).  
 https://www.microsoft.com/net/core  
 This modification will allow us to be faster in the development (thanks C# and visual studio) while being able to add a few interesting features. You will need to run the EmpireASP (new name) on the same machine as the empire server and connect to it trough your browser. There will be no need anymore to handle the SSH connection. If you do connect via SSH (which we recommend), you could use putty (for example).  
 For the moment, both project will be supported. We will release a beta version as soon as possible.  
