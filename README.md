@@ -38,7 +38,7 @@ EmpireGUI also display info when available. In this example, we received the lau
 
 ![alt tag](https://raw.githubusercontent.com/tristandostaler/EmpireGUI/master/ScreenShots/LauncherStagerGenerated.PNG)
 
-
+Small demo (thx to Vect0r!): https://www.youtube.com/watch?v=U0QIW4ocqXU  
 More screenShots are available in the folder "ScreenShots".
 
 # Installation, usage and supported OS
