@@ -6,7 +6,8 @@ public enum ItemType {
 	STAGER, 
 	LISTENER,
 	CREATE_LISTENER,
-	REPORTING;
+	REPORTING,
+	LOGS;
 	
 
     public String getStringValue() {

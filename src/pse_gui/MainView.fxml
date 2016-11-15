@@ -94,6 +94,10 @@
 							          			text="Report" 
 					          					styleClass="button-raised"
 							          			onAction="#onBtnReportClick"/>
+							          	<Button fx:id="btnLogs"
+							          			text="Logs" 
+					          					styleClass="button-raised"
+							          			onAction="#onBtnLogsClick"/>
 				          			</VBox>
 					          	</HBox>
 				          </SplitPane>

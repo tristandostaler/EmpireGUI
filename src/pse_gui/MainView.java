@@ -1,10 +1,15 @@
 package pse_gui;
+
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
@@ -37,6 +42,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.GridPane;
@@ -63,6 +69,7 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnReset;
 	@FXML Button btnSend;
 	@FXML Button btnReport;
+	@FXML Button btnLogs;
 	@FXML TreeView<ModifiedFile> leftFileTree;
 	@FXML TreeView<ModifiedFile> rightFileTree;
 	@FXML BreadCrumbBar<ModifiedFile> leftFileBreadCrumb;
@@ -1196,6 +1203,57 @@ public class MainView implements ChangeListener<Object> {
 		handler.makeUserRequest(new ReportingAgentResponseHandler(actualSelectedItemAgentOrListener));
 	}
 	
+	@SuppressWarnings("unchecked")
+	public void onBtnLogsClick(){
+		if (agentsReportingMap.containsKey(actualSelectedItemAgentOrListener))
+			agentsReportingMap.remove(actualSelectedItemAgentOrListener);
+		tree.setDisable(true);
+		
+		//TODO check remote file exists
+		HashMap<String, Object> config = (HashMap<String, Object>) ((ArrayList) model.getServerConfigList().getValue().get("config")).get(0);
+		String install_path = (String) config.get("install_path"); //Ends with a /
+		
+		ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
+		File temp;
+		try {
+			temp = File.createTempFile("temp-" + actualSelectedItemAgentOrListener + "-logfile", ".tmp");
+		
+			try {
+				sftpChan.get(install_path + "downloads/" + actualSelectedItemAgentOrListener + "/agent.log", temp.getAbsolutePath(), new NullProgressMonitor(), ChannelSftp.OVERWRITE);
+			} catch (SftpException e) {
+				SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+				e.printStackTrace();
+			}
+			
+			Platform.runLater(new Runnable() {
+	
+				@SuppressWarnings("unchecked")
+				@Override
+				public void run() {
+					try {
+						//TODO display better
+						content.getChildren().clear();
+						List<String> lines = Files.readAllLines(Paths.get(temp.getAbsolutePath()), Charset.forName("UTF-8"));
+						VBox vb = new VBox();
+						for(String line:lines){
+							vb.getChildren().add(new Label(line));
+						}
+						
+						content.getChildren().add(vb);
+					} catch (Exception e) {
+						SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
+						e.printStackTrace();
+					}
+					tree.setDisable(false);
+				}
+				
+			});
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	
 	private void refreshLabels() {
 		Platform.runLater(new Runnable() {
 	        @Override
@@ -1228,6 +1286,7 @@ public class MainView implements ChangeListener<Object> {
 		btnSend.setDisable(disabled);
 		btnDelete.setDisable(disabled);
 		btnReport.setDisable(disabled);
+		btnLogs.setDisable(disabled);
 	}
 	
 	private void refreshMainContent(MapTreeItem item) {
@@ -1267,6 +1326,7 @@ public class MainView implements ChangeListener<Object> {
 				actualSelectedItemAgentOrListener = item.getValue();
 				this.btnDelete.setDisable(false);
 				btnReport.setDisable(false);
+				btnLogs.setDisable(false);
 			}
 			else if(parent.getValue().equals(STAGER_STRING)){
 				ItemType type = ItemType.STAGER;
@@ -1696,5 +1756,27 @@ public class MainView implements ChangeListener<Object> {
 	      //cancelBtn.setDisable(true);
 	    	cancelBtn.setOnMouseClicked(null); //So the GC collects it
 	    }
+	}
+	
+	public class NullProgressMonitor implements SftpProgressMonitor {
+
+		@Override
+		public boolean count(long arg0) {
+			//Deliberatly ignore
+			return true;
+		}
+
+		@Override
+		public void end() {
+			//Deliberatly ignore
+			
+		}
+
+		@Override
+		public void init(int arg0, String arg1, String arg2, long arg3) {
+			//Deliberatly ignore
+			
+		}
+		
 	}
 }
