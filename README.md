@@ -56,6 +56,7 @@ EmpireGUI was tested on Windows 8, 8.1 and 10, on Ubuntu and on Kali Linux. Norm
 # Actual version: 1.2.1  
 Features added:  
 
+* You can now get the reports and the complete logs when you select an agent. Keylogging are in the logs.
 * You can now give the token directly (fixes a bug in the empire server)
 * There is now a Files tab where you can make basic file handling between the server and the client.
 * You can now get the reports for every agents
