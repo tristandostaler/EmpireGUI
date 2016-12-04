@@ -6,7 +6,6 @@ public class ConnectEvent extends Event {
 	
 	public ConnectEvent() {
 		super(LoginView.CONNECT);
-		// TODO Auto-generated constructor stub
 	}
 	
 }
