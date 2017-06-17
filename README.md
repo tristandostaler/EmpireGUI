@@ -1,16 +1,6 @@
 # EmpireGUI
 This is a GUI for the projet https://github.com/PowerShellEmpire/Empire
 
-# Important notice!
-We are thinking about redoing the project in ASP NET Core with the new .NET Core (multi-platform).  
-https://www.microsoft.com/net/core  
-We will do a prototype, test it and if it works as expected, we will go ahead with this idea.  
-This modification will allow us to be faster in the development (thanks C# and visual studio) while being able to add a few interesting features. You will need to run the EmpireASP (new name) on the same machine as the empire server and connect to it trough your browser. There will be no need anymore to handle the SSH connection. If you do connect via SSH (which we recommend), you could use putty (for example).  
-For the moment, both project will be supported. We will release a beta version as soon as possible.  
-Feel free to post questions/comments in the associated issue: https://github.com/tristandostaler/EmpireGUI/issues/6  
-We are looking for developpers to help us get the new version faster! Your name will be added to the list bellow!  
-
-
 Created by:  
 Tristan Dostaler - https://github.com/tristandostaler  
 Cydrick Trudel  - https://github.com/CydrickTrudel - http://stackoverflow.com/users/2278844/cydrickt  
@@ -69,3 +59,15 @@ Source: http://stackoverflow.com/questions/32630354/the-import-javafx-cannot-be-
 For the moment, a few features are missing but are in the TODO list.
 
 Feel free to help us make this project better! Pull requests are welcome!
+
+
+# Important notice!
+We are thinking about redoing the project in ASP NET Core with the new .NET Core (multi-platform).  
+https://www.microsoft.com/net/core  
+We will do a prototype, test it and if it works as expected, we will go ahead with this idea.  
+This modification will allow us to be faster in the development (thanks C# and visual studio) while being able to add a few interesting features. You will need to run the EmpireASP (new name) on the same machine as the empire server and connect to it trough your browser. There will be no need anymore to handle the SSH connection. If you do connect via SSH (which we recommend), you could use putty (for example).  
+For the moment, both project will be supported. We will release a beta version as soon as possible.  
+Feel free to post questions/comments in the associated issue: https://github.com/tristandostaler/EmpireGUI/issues/6  
+We are looking for developpers to help us get the new version faster! Your name will be added to the list bellow!  
+# Note: 
+As I am the only developer and now working full time, I don't have much time to work on this idea. If anyone can help, please do so (I have a started project repo to add you on). If you need a web interface, there is also this project: https://github.com/interference-security/empire-web
