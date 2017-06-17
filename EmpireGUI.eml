@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component inheritJdk="true">
+	<exclude-output/>
+	<contentEntry url="file://$MODULE_DIR$"/>
+	<lib name="controlsfx-8.40.12.jar" scope="COMPILE">
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/lib/controlsfx-8.40.12.jar!/"/>
+	</lib>
+	<lib name="jfxswt.jar" scope="COMPILE">
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/lib/jfxswt.jar!/"/>
+	</lib>
+	<lib name="jsch-0.1.53.jar" scope="COMPILE">
+		<relative-module-cls project-related="jar://$PROJECT_DIR$/lib/jsch-0.1.53.jar!/"/>
+	</lib>
+</component>

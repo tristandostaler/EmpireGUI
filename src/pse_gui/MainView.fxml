@@ -31,8 +31,7 @@
 	<!-- Top center (left and right panel) -->
 	<center>
 		<TabPane >
-			<Tab closable="false"
-					text="Empire API Controller">
+			<Tab closable="false" text="Empire API Controller">
 				<SplitPane fx:id="horizontalSplitPane" 
 						   orientation="horizontal"
 						   styleClass="splitPane">
@@ -104,7 +103,7 @@
 					  </AnchorPane>
 				</SplitPane>
 			</Tab>
-			<Tab closable="false" text="Files">
+			<Tab closable="false" text="Empire Files">
 				<SplitPane orientation="horizontal"
 						   styleClass="splitPane">
 						   
@@ -186,6 +185,34 @@
 					        </HBox>
 			          	</VBox>
 			   </SplitPane>
+			</Tab>
+			<Tab closable="false" text="Shell">
+				<SplitPane fx:id="shellHorizontalSplitPane"
+						   orientation="horizontal"
+						   styleClass="splitPane">
+					<VBox fx:id="shellLeftContainer"
+						  styleClass="container">
+						<Label text="Agents"
+							   styleClass="boldLabel"
+							   VBox.vgrow="NEVER"
+						/>
+						<ScrollPane fx:id="shellAgentsScollPane" VBox.vgrow="ALWAYS">
+							<VBox fx:id="shellAgentPane"></VBox>
+						</ScrollPane>
+					</VBox>
+					<VBox>
+						<ScrollPane fitToHeight="true" VBox.vgrow="always" fitToWidth="true">
+							<TextArea fx:id="shellTextArea" editable="false" style="-fx-font-family: monospace"></TextArea>
+						</ScrollPane>
+						<HBox>
+							<TextField fx:id="shellTextField" HBox.hgrow="always" onAction="#onShellBtnSendClick"></TextField>
+							<Button fx:id="shellBtnSend"
+									text="Send"
+									styleClass="button-raised"
+									onAction="#onShellBtnSendClick"/>
+						</HBox>
+					</VBox>
+				</SplitPane>
 			</Tab>
 		</TabPane>
 	</center>

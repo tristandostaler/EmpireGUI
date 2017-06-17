@@ -1,7 +1,10 @@
 package pse_gui;
+import javafx.scene.control.Alert;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class SharedCentralisedClass {
 
@@ -64,6 +67,17 @@ public class SharedCentralisedClass {
 		e.printStackTrace(pw);
 		e.printStackTrace();
 		showStackTraceInAlertWindow(message, sw.toString());
+	}
+
+	public void showAlertWindow(Alert.AlertType alertType, String messageType, Map<String, Object> map, String key){
+		System.out.println("Error: " + (String) map.get(key.toString()));
+		if(this.mainView != null)
+			this.mainView.showAlertWindow(alertType, messageType, map, key);
+		else {
+			/*synchronized(queuedStackTraceList) {
+				queuedStackTraceList.add(new StackTraceQueueObject(message, trace));
+			}*/
+		}
 	}
 	
 	private class StackTraceQueueObject{

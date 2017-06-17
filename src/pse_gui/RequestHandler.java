@@ -165,10 +165,12 @@ public class RequestHandler {
 	}
 	
 	public void getListenerOptions() {
-		if(model.getPowershellEmpireConnection() != null) {
+		return;
+		//TODO this is not working in empire 2.0
+		/*if(model.getPowershellEmpireConnection() != null) {
 			Communication comm = new Communication(Communication.METHODS.GET, "listeners/options", new ListenerOptionsResponseHandler(false), null);
 			model.getPowershellEmpireConnection().send(comm);
-		}
+		}*/
 	}
 	
 	public void getServerConfig() {

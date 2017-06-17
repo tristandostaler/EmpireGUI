@@ -66,27 +66,8 @@ public abstract class ResponseHandler {
 			alertType = AlertType.ERROR;
 			messageType = "Error";
 		}
-		
-		Alert alert = new Alert(alertType);
-		alert.setTitle("PowerShell Empire GUI");
-		alert.setHeaderText(messageType);
-		WebView browser = new WebView();
-		WebEngine engine = browser.getEngine();
+		SharedCentralisedClass.getInstance().showAlertWindow(alertType, messageType, map, key);
 
-		ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(browser);
-        engine.loadContent((String) map.get(key.toString()));
-
-		GridPane.setVgrow(scrollPane, Priority.ALWAYS);
-		GridPane.setHgrow(scrollPane, Priority.ALWAYS);
-
-		GridPane content = new GridPane();
-		content.setMaxWidth(Double.MAX_VALUE);
-		content.add(scrollPane, 0, 0);
-		
-		alert.getDialogPane().setContent(content);
-
-		alert.showAndWait();
 	}
 	
 	@SuppressWarnings("unchecked")

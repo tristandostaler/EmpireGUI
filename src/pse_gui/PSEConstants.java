@@ -9,6 +9,7 @@ public class PSEConstants {
 	public static final String AGENT_LIST_ENDPOINT = "agents";
 	public static final String STAGER_LIST_ENDPOINT = "stagers";
 	public static final String LISTENER_LIST_ENDPOINT = "listeners";
+	public static final String SEND_SHELL_COMMAND_ENDPOINT = "shell";
 	
 	/*
 	 * Constants needed for the SyntaxAnalyzer. Represents all the keys that the values are needed in the Field object.

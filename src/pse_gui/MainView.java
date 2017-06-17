@@ -14,6 +14,16 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
 
+import javafx.event.ActionEvent;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent;
 
@@ -35,16 +45,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -85,6 +86,12 @@ public class MainView implements ChangeListener<Object> {
 	@FXML Button btnRightCancel;
 	@FXML javafx.scene.control.ProgressBar leftProgressBar;
 	@FXML javafx.scene.control.ProgressBar rightProgressBar;
+	@FXML TextField shellTextField;
+	@FXML Button shellBtnSend;
+	@FXML SplitPane shellHorizontalSplitPane;
+	@FXML ScrollPane shellAgentsScollPane;
+	@FXML VBox shellAgentPane;
+	@FXML TextArea shellTextArea;
 	
 	String backupStyleEnabled;
 	String backupStyleDisabled;
@@ -264,6 +271,9 @@ public class MainView implements ChangeListener<Object> {
 		backupStyleDisabled = btnLeftCancel.getStyle();
 		
 		initialiseLocalFileBrowser(null);
+
+		shellHorizontalSplitPane.setDividerPositions(0.3);
+
     }
 	
 	private void setDisabledFilesButtons(boolean disable){
@@ -275,7 +285,60 @@ public class MainView implements ChangeListener<Object> {
 		btnDownloadAndOpen.setDisable(disable);
 		btnRightMkdir.setDisable(disable);
 	}
-	
+
+	private void setupAgentsInShellTab(Map<String, Object> map){
+		shellAgentPane.getChildren().removeAll();
+		javafx.scene.control.CheckBox checkBoxAllAgent = new javafx.scene.control.CheckBox();
+		checkBoxAllAgent.setText("All");
+		shellAgentPane.getChildren().add(checkBoxAllAgent);
+		EventHandler allAgentCheckBoxEventHandler = new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if (event.getSource() instanceof CheckBox) {
+					CheckBox chk = (CheckBox) event.getSource();
+					ObservableList<Node> agentCheckBoxs = shellAgentPane.getChildren();
+					for (Node node : agentCheckBoxs){
+						((CheckBox)node).setSelected(chk.isSelected());
+					}
+				}
+			}
+		};
+		checkBoxAllAgent.setOnAction(allAgentCheckBoxEventHandler);
+
+		for(Map.Entry<String, Object> entry : map.entrySet()) {
+			Object value = entry.getValue();
+			if(value instanceof ArrayList) {
+				ArrayList<HashMap<String, Object>> list = (ArrayList<HashMap<String, Object>>)value;
+				if(list != null) {
+					for(HashMap<String, Object> item : list) {
+						if(item.containsKey("Name")) {
+							String name = (String)item.get("Name");
+							javafx.scene.control.CheckBox checkBoxAgent = new javafx.scene.control.CheckBox();
+							checkBoxAgent.setText(name);
+							shellAgentPane.getChildren().add(checkBoxAgent);
+							/*String[] parts = name.split("/");
+							MapTreeItem curItem = branch;
+							for(String part : parts) {
+								curItem = addTreeItem(part, part.equals(parts[parts.length-1]) ? item : null, curItem);
+							}*/
+						}
+						else if(item.containsKey("name")) {
+							String name = (String)item.get("name");
+							javafx.scene.control.CheckBox checkBoxAgent = new javafx.scene.control.CheckBox();
+							checkBoxAgent.setText(name);
+							shellAgentPane.getChildren().add(checkBoxAgent);
+							/*String[] parts = name.split("/");
+							MapTreeItem curItem = branch;
+							for(String part : parts) {
+								curItem = addTreeItem(part, part.equals(parts[parts.length-1]) ? item : null, curItem);
+							}*/
+						}
+					}
+				}
+			}
+		}
+	}
+
 	private void initializeTreeView() {
 		if(treeRoot == null) {
 			treeRoot = new MapTreeItem("/");
@@ -314,6 +377,7 @@ public class MainView implements ChangeListener<Object> {
 				try {
 					initializeTreeView();
 					refreshTreeBranch(agentsItem, model.getAgentList().getValue());
+					setupAgentsInShellTab(model.getAgentList().getValue());
 				} catch (Exception e) {
 					SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
 					e.printStackTrace();
@@ -1044,7 +1108,35 @@ public class MainView implements ChangeListener<Object> {
 		      });
 		}
 	}
-	
+
+	public void showAlertWindow(AlertType alertType, String messageType, Map<String, Object> map, String key){
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				Alert alert = new Alert(alertType);
+				alert.setTitle("PowerShell Empire GUI");
+				alert.setHeaderText(messageType);
+				WebView browser = new WebView();
+				WebEngine engine = browser.getEngine();
+
+				ScrollPane scrollPane = new ScrollPane();
+				scrollPane.setContent(browser);
+				engine.loadContent((String) map.get(key.toString()));
+
+				GridPane.setVgrow(scrollPane, Priority.ALWAYS);
+				GridPane.setHgrow(scrollPane, Priority.ALWAYS);
+
+				GridPane content = new GridPane();
+				content.setMaxWidth(Double.MAX_VALUE);
+				content.add(scrollPane, 0, 0);
+
+				alert.getDialogPane().setContent(content);
+
+				alert.showAndWait();
+			}
+		});
+	}
+
 	public void showStackTraceInAlertWindow(String message, String trace){
 		Platform.runLater(new Runnable() {
 	        @Override
@@ -1202,6 +1294,24 @@ public class MainView implements ChangeListener<Object> {
 		this.model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, type, "reporting/agent/" + actualSelectedItemAgentOrListener));
 		handler.makeUserRequest(new ReportingAgentResponseHandler(actualSelectedItemAgentOrListener));
 	}
+
+
+	public void onShellBtnSendClick(){
+		ObservableList<Node> agentCheckBoxs = shellAgentPane.getChildren();
+		for (Node node : agentCheckBoxs){
+			if(((CheckBox)node).isSelected()){
+				String name = ((CheckBox)node).getText();
+				String shellCommand = shellTextField.getText();
+				shellTextField.setText("");
+				ItemType type = ItemType.SHELL;
+				Field field = new Field("command", "", shellCommand, true);
+				ArrayList<Field> fields = new ArrayList<Field>();
+				fields.add(field);
+				this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, fields, type, "agents/" + name + "/shell"));
+				handler.makeUserRequest(new SHellAgentResponseHandler(name, shellCommand));
+			}
+		}
+	}
 	
 	@SuppressWarnings("unchecked")
 	public void onBtnLogsClick(){
@@ -1358,7 +1468,9 @@ public class MainView implements ChangeListener<Object> {
 
 	@SuppressWarnings("unchecked")
 	private void refreshTreeBranch(MapTreeItem branch, Map<String, Object> map) {
-		
+		if(map.get("error") != null){
+			return;
+		}
 		if(map.get(LISTENER_OPTIONS_STRING) != null){
 			if(branch.getChildren().size() > 0 && branch.getChildren().get(0).getValue().equals(CREATE_LISTENER_STRING)){
 				branch.getChildren().remove(0);
@@ -1489,6 +1601,52 @@ public class MainView implements ChangeListener<Object> {
 			ItemType type = ItemType.AGENT;
 			model.setUserRequest(new UserRequest(Communication.METHODS.DELETE, null, type, "agents/" + actualSelectedItemAgentOrListener));
 			handler.makeUserRequest(new DeleteAgentResponseHandler());
+		}
+
+	}
+
+	public class SHellAgentResponseHandler extends ResponseHandler{
+		String agentName;
+		String shellCommand;
+		public SHellAgentResponseHandler(String agentName, String shellCommand) {
+			super(false); //boolean: don't display error window if there was an error
+			this.agentName = agentName;
+			this.shellCommand = shellCommand;
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			if(serverResponse.getValue().get("success") != null && ((Boolean)serverResponse.getValue().get("success"))){
+				//TODO thread safe
+				model.setUserRequest(new UserRequest(Communication.METHODS.GET, null, ItemType.SHELL, "agents/" + agentName + "/results"));
+				handler.makeUserRequest(new SHellResultAgentResponseHandler(shellCommand));
+			}
+		}
+
+	}
+
+	public class SHellResultAgentResponseHandler extends ResponseHandler{
+		String shellCommand;
+		public SHellResultAgentResponseHandler(String shellCommand) {
+			super(false); //boolean: don't display error window if there was an error
+			this.shellCommand = shellCommand;
+		}
+		@Override
+		public void baseHandleResponse(ServerResponse serverResponse) {
+			if(serverResponse.getValue().get("results") != null){
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						try{
+							ArrayList<Map<String, Object>> results = (ArrayList<Map<String, Object>>)serverResponse.getValue().get("results");
+							Map<String, Object> result = results.get(results.size() - 1);
+							shellTextArea.appendText((String)result.get("agentname") + "> " + shellCommand + "\r\n"
+									+ ((String)result.get("results")).replace(",", "\r\n") + "\r\n\r\n");
+						}catch (Exception ex){
+							SharedCentralisedClass.getInstance().showStackTraceInAlertWindow("An exception occured in SHellResultAgentResponseHandler", ex);
+						}
+					}
+				});
+			}
 		}
 
 	}
