@@ -499,7 +499,8 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 String rootPath = System.getProperty("user.home") + (OSValidator.isWindows() ? "\\" : "/") + "EmpireGUI";
                 if (toGoPath != null)
                     rootPath = toGoPath;
-                if(!new File(rootPath).mkdir()){
+                File folderToCreate = new File(rootPath);
+                if(!folderToCreate.exists() && !folderToCreate.mkdir()){
                     Exception ex = new Exception("Unable to create the directory " + rootPath);
                     SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(ex.getMessage(), ex);
                 }
@@ -955,7 +956,8 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
     private void recursiveDownload(ChannelSftp sftpChan, ModifiedFile fRemote, String localPath, MyProgressMonitor monitor) {
         try {
             synchronized (doReplaceObject) {
-                if(!new File(localPath + "/" + fRemote.getName()).mkdir()){
+                File folderToCreate = new File(localPath + "/" + fRemote.getName());
+                if(!folderToCreate.exists() && !folderToCreate.mkdir()){
                     Exception ex = new Exception("Unable to create the directory " + localPath + "/" + fRemote.getName());
                     SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(ex.getMessage(), ex);
                 }
@@ -1017,8 +1019,8 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
             String dirName = showMkdirNameWindow();
             if (dirName != null) {
-                File f = new File(fLocal.getValue().getPath() + "/" + dirName);
-                if(!f.mkdir()){
+                File folderToCreate = new File(fLocal.getValue().getPath() + "/" + dirName);
+                if(!folderToCreate.exists() && !folderToCreate.mkdir()){
                     Exception ex = new Exception("Unable to create the directory " + fLocal.getValue().getPath() + "/" + dirName);
                     SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(ex.getMessage(), ex);
                 }
