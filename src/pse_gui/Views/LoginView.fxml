@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="root" prefHeight="520.0" prefWidth="500.0" styleClass="mainContainer" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pse_gui.Views.LoginView">
+	
+	<HBox>
+		<VBox styleClass="vbox" HBox.hgrow="always">
+			<Label fx:id="usernameLbl" text="Username" />
+			<TextField fx:id="username" />
+		</VBox>	
+		<VBox styleClass="vbox" HBox.hgrow="always">
+			<Label fx:id="passwordLbl" text="Password" />
+			<PasswordField fx:id="password" />
+		</VBox>
+	</HBox>
+	
+	<VBox styleClass="checkBoxContainer">
+		<CheckBox fx:id="checkBoxToken" text="Give token instead" />
+          <VBox styleClass="vbox" HBox.hgrow="always">
+			<Label fx:id="tokenLbl" text="Token" />
+			<TextField fx:id="tokenTxtField" />
+		</VBox>
+	</VBox>
+	
+	<HBox>
+		<VBox styleClass="vbox" HBox.hgrow="always">
+			<Label text="Address" />
+			<TextField fx:id="address" />
+		</VBox>
+		<VBox styleClass="vbox" HBox.hgrow="always">
+			<Label fx:id="txtPortLbl" text="Port" />
+			<TextField fx:id="port" />
+		</VBox>	
+	</HBox>
+	
+	<VBox styleClass="checkBoxContainer">
+		<CheckBox fx:id="checkBox" text="Remote SSH Connection" />
+	</VBox>
+
+	<VBox>
+		<HBox>
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshUsername" text="Username" />
+				<TextField fx:id="sshUsername" />
+			</VBox>	
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshPassword" text="Password" />
+				<PasswordField fx:id="sshPassword" />
+			</VBox>
+		</HBox>
+		
+		<HBox>
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshServerAddress" text="Server Address" />
+				<TextField fx:id="sshAddress" text="" />
+			</VBox>
+			<VBox styleClass="vbox" HBox.hgrow="always">
+				<Label fx:id="txtSshPort" text="Port" />
+				<TextField fx:id="sshPort" />
+			</VBox>	
+		</HBox>
+	</VBox>
+	
+	<HBox styleClass="bottomPane">
+		<Button fx:id="btnCancel" onAction="#onBtnCancelClick" text="Cancel" />
+		<Button fx:id="btnLogin" onAction="#onBtnLoginClick" text="Login" />
+	</HBox>
+
+</VBox>

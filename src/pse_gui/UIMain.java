@@ -6,6 +6,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import pse_gui.Handlers.RequestHandler;
+import pse_gui.Models.Model;
+import pse_gui.Utils.SharedCentralisedClass;
+import pse_gui.Views.MainView;
 
 
 @SuppressWarnings("restriction")
@@ -47,12 +51,12 @@ public class UIMain extends Application {
 	} 
 	
 	private void initializeView(Stage primaryStage) throws Exception {
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("MainView.fxml"));
+		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Views/MainView.fxml"));
 		Parent root = fxmlLoader.load();
 		mainController  = fxmlLoader.getController();
 		primaryStage.setTitle("PowerShell GUI");
 		Scene scene = new Scene(root, 1024, 768);
-		scene.getStylesheets().add("pse_gui/MainView.css");
+		scene.getStylesheets().add("pse_gui/Views/MainView.css");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
