@@ -477,7 +477,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                     ServerResponse reportResponse = agentsReportingMap.get(actualSelectedItemAgentOrListenerToHandle);
                     content.getChildren().clear();
                     for (HashMap<String, Object> event : ((ArrayList<HashMap<String, Object>>) reportResponse.getValue().get("reporting"))) {
-                        content.getChildren().add(new Label("Agent " + ((String) event.get("agentname")) + " event ID " + ((Integer) event.get("ID")) + ": "));
+                        content.getChildren().add(new Label("Agent " + (event.get("agentname")) + " event ID " + (event.get("ID")) + ": "));
                         content.getChildren().add(uiObjectCreator.generateVBox(model.getUserRequest(), event));
                         content.getChildren().add(new Label(""));
                     }
@@ -490,7 +490,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         });
     }
 
-    public void initialiseLocalFileBrowser(String toGoPath) {
+    private void initialiseLocalFileBrowser(String toGoPath) {
         Platform.runLater(() -> {
             //http://www.java2s.com/Code/Java/JavaFX/Createthetreeitemonthefly.htm
             leftFileHome.clear();
@@ -548,8 +548,8 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                     SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
                 }
             }
-            for (int i = 0; i < rightFileHome.size(); i++) {
-                rightFileHome.get(i).setExpanded(true);
+            for (TreeItem<ModifiedFile> aRightFileHome : rightFileHome) {
+                aRightFileHome.setExpanded(true);
             }
         });
     }
@@ -604,18 +604,15 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             }
         };
 
-        toReturn.expandedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                //System.out.println("newValue = " + newValue);
-                BooleanProperty bb = (BooleanProperty) observable;
-                //System.out.println("bb.getBean() = " + bb.getBean());
-                @SuppressWarnings("unchecked")
-                TreeItem<ModifiedFile> t = (TreeItem<ModifiedFile>) bb.getBean();
-                // Do whatever with t
-                root.getSelectionModel().select(t);
-                root.scrollTo(root.getSelectionModel().getSelectedIndex());
-            }
+        toReturn.expandedProperty().addListener((observable, oldValue, newValue) -> {
+            //System.out.println("newValue = " + newValue);
+            BooleanProperty bb = (BooleanProperty) observable;
+            //System.out.println("bb.getBean() = " + bb.getBean());
+            @SuppressWarnings("unchecked")
+            TreeItem<ModifiedFile> t = (TreeItem<ModifiedFile>) bb.getBean();
+            // Do whatever with t
+            root.getSelectionModel().select(t);
+            root.scrollTo(root.getSelectionModel().getSelectedIndex());
         });
 
         return toReturn;
@@ -703,8 +700,6 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                         };
                     }
 
-                    ;
-
                     @Override
                     protected void succeeded() {
                         try {
@@ -753,19 +748,14 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 };
 
                 loginStage.setScene(scene);
-                loginStage.addEventHandler(LoginView.CONNECT, new EventHandler<ConnectEvent>() {
-
-                    @Override
-                    public void handle(ConnectEvent e) {
-                        try {
-                            loginController.setIsLoading(true);
-                            backgroundThread.restart();
-                        } catch (Exception e1) {
-                            SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e1.getMessage(), e1);
-                            e1.printStackTrace();
-                        }
+                loginStage.addEventHandler(LoginView.CONNECT, e -> {
+                    try {
+                        loginController.setIsLoading(true);
+                        backgroundThread.restart();
+                    } catch (Exception e1) {
+                        SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e1.getMessage(), e1);
+                        e1.printStackTrace();
                     }
-
                 });
             }
 
@@ -798,7 +788,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             try {
                 String toGoPath = rightFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePathConvertAsLinuxFS();
 
-                ArrayList<Button> allButtonsToAffect = new ArrayList<Button>();
+                ArrayList<Button> allButtonsToAffect = new ArrayList<>();
                 allButtonsToAffect.add(btnLeftReset);
                 allButtonsToAffect.add(btnUpload);
                 allButtonsToAffect.add(btnLeftMkdir);
@@ -849,7 +839,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
     }
 
     @SuppressWarnings("rawtypes")
-    public void recursiveUpload(ChannelSftp sftpChan, ModifiedFile fLocal, String remotePath, MyProgressMonitor monitor) {
+    private void recursiveUpload(ChannelSftp sftpChan, ModifiedFile fLocal, String remotePath, MyProgressMonitor monitor) {
         try {
             synchronized (doReplaceObject) {
                 try {
@@ -903,7 +893,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         doDownload(null);
     }
 
-    public void doDownload(Thread threadToRunAfter) {
+    private void doDownload(Thread threadToRunAfter) {
         new Thread(() -> {
             TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
             System.out.println(fLocal.getValue().getAbsolutePath());
@@ -915,7 +905,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             try {
                 String toGoPath = leftFileTree.getSelectionModel().getSelectedItem().getValue().getAbsolutePath();
 
-                ArrayList<Button> allButtonsToAffect = new ArrayList<Button>();
+                ArrayList<Button> allButtonsToAffect = new ArrayList<>();
                 allButtonsToAffect.add(btnRightReset);
                 allButtonsToAffect.add(btnDownload);
                 allButtonsToAffect.add(btnDownloadAndOpen);
@@ -962,10 +952,13 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         }).start();
     }
 
-    public void recursiveDownload(ChannelSftp sftpChan, ModifiedFile fRemote, String localPath, MyProgressMonitor monitor) {
+    private void recursiveDownload(ChannelSftp sftpChan, ModifiedFile fRemote, String localPath, MyProgressMonitor monitor) {
         try {
             synchronized (doReplaceObject) {
-                new File(localPath + "/" + fRemote.getName()).mkdir();
+                if(!new File(localPath + "/" + fRemote.getName()).mkdir()){
+                    Exception ex = new Exception("Unable to create the directory " + localPath + "/" + fRemote.getName());
+                    SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(ex.getMessage(), ex);
+                }
                 for (ModifiedFile f : fRemote.listFiles()) {
                     if (f.isDirectory())
                         recursiveDownload(sftpChan, f, localPath + "/"
@@ -1006,9 +999,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         doDownload(new Thread(() -> {
             //Open
             TreeItem<ModifiedFile> fRemote = rightFileTree.getSelectionModel().getSelectedItem();
-            if (fRemote.getValue().isDirectory())
-                return;
-            else {
+            if (!fRemote.getValue().isDirectory()) {
                 TreeItem<ModifiedFile> fLocal = leftFileTree.getSelectionModel().getSelectedItem();
                 String fileToOpen = fLocal.getValue().getAbsolutePath() + (fLocal.getValue().isFile() ? "" : ("/" + fRemote.getValue().getName()));
                 try {
@@ -1027,11 +1018,12 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             String dirName = showMkdirNameWindow();
             if (dirName != null) {
                 File f = new File(fLocal.getValue().getPath() + "/" + dirName);
-                f.mkdir();
+                if(!f.mkdir()){
+                    Exception ex = new Exception("Unable to create the directory " + fLocal.getValue().getPath() + "/" + dirName);
+                    SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(ex.getMessage(), ex);
+                }
             }
-            Platform.runLater(() -> {
-                onBtnLeftRefreshClick();
-            });
+            Platform.runLater(() -> onBtnLeftRefreshClick());
         }).start();
     }
 
@@ -1047,9 +1039,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 SharedCentralisedClass.getInstance().showStackTraceInAlertWindow(e.getMessage(), e);
                 e.printStackTrace();
             }
-            Platform.runLater(() -> {
-                onBtnRightRefreshClick();
-            });
+            Platform.runLater(() -> onBtnRightRefreshClick());
         }).start();
     }
 
@@ -1081,7 +1071,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             logTextAreaBuffer += "> " + text + "\n";
         }
 
-        if (HasRunLater == false) {
+        if (!HasRunLater) {
             HasRunLater = true;
             Platform.runLater(() -> {
                 if (logTextArea != null) {
@@ -1112,7 +1102,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
 
             ScrollPane scrollPane = new ScrollPane();
             scrollPane.setContent(browser);
-            engine.loadContent((String) map.get(key.toString()));
+            engine.loadContent((String) map.get(key));
 
             GridPane.setVgrow(scrollPane, Priority.ALWAYS);
             GridPane.setHgrow(scrollPane, Priority.ALWAYS);
@@ -1162,7 +1152,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         });
     }
 
-    public ButtonType showFileOverwriteConfirmationWindow(boolean askForMultipleFiles) {
+    private ButtonType showFileOverwriteConfirmationWindow(boolean askForMultipleFiles) {
         // http://code.makery.ch/blog/javafx-dialogs-official/
         final DeleteFileConfirmationOptions options = new DeleteFileConfirmationOptions();
 
@@ -1186,7 +1176,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         return options.alertResult;
     }
 
-    public String showMkdirNameWindow() {
+    private String showMkdirNameWindow() {
 
         final CreateDirectoryOptions options = new CreateDirectoryOptions();
 
@@ -1210,7 +1200,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             alert.getDialogPane().setExpandableContent(expContent);
             alert.getDialogPane().setExpanded(true);
 
-            options.canceled = (alert.showAndWait().get() == ButtonType.CANCEL ? true : false);
+            options.canceled = (alert.showAndWait().get() == ButtonType.CANCEL);
 
             options.directoryName = textField.getText();
             options.windowClosed = true;
@@ -1287,7 +1277,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 shellTextField.setText("");
                 ItemType type = ItemType.SHELL;
                 Field field = new Field("command", "", shellCommand, true);
-                ArrayList<Field> fields = new ArrayList<Field>();
+                ArrayList<Field> fields = new ArrayList<>();
                 fields.add(field);
                 synchronized (model) {
                     this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, fields, type, "agents/" + name + "/shell"));
@@ -1382,7 +1372,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 //tempLabel.setWrapText(true);
                 //content.getChildren().add(tempLabel);
 
-                MapTreeItem parent = (MapTreeItem) ((MapTreeItem) item);
+                MapTreeItem parent = item;
                 while (parent.getParent() != null && !parent.getParent().getValue().equals("/")) {
                     parent = (MapTreeItem) parent.getParent();
                 }
@@ -1412,7 +1402,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                     ItemType type = ItemType.STAGER;
                     @SuppressWarnings("unchecked")
                     ArrayList<Field> copy = (ArrayList<Field>) item.getFieldList().clone();
-                    copy.add(new Field("StagerName", "The stager name", ((MapTreeItem) item).getValue(), true));
+                    copy.add(new Field("StagerName", "The stager name", item.getValue(), true));
                     this.model.setUserRequest(new UserRequest(Communication.METHODS.POST, copy, type));
                     content.getChildren().add(uiObjectCreator.generateVBox(this.model.getUserRequest(), item.getMap()));
                     btnReset.setDisable(false);
@@ -1455,11 +1445,11 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
 			 * That treeitem contains our array of "options".
 			*/
             //We know we only have 1 element: the listener options
-            Map.Entry<String, Object> elem0 = (Entry<String, Object>) map.entrySet().iterator().next();
+            Map.Entry<String, Object> elem0 = map.entrySet().iterator().next();
             //We know it's a ArrayList of 1 hashmap of fields
             ArrayList<HashMap<String, Object>> alElem0 = (ArrayList<HashMap<String, Object>>) elem0.getValue();
-            HashMap<String, Object> hmElem0 = (HashMap<String, Object>) alElem0.get(0);
-            HashMap<String, Object> hmElem0AsOptions = new HashMap<String, Object>();
+            HashMap<String, Object> hmElem0 = alElem0.get(0);
+            HashMap<String, Object> hmElem0AsOptions = new HashMap<>();
             hmElem0AsOptions.put("options", hmElem0);
             addTreeItemAtPosition(CREATE_LISTENER_STRING, hmElem0AsOptions, branch, 0);
         } else {
@@ -1479,22 +1469,20 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 Object value = entry.getValue();
                 if (value instanceof ArrayList) {
                     ArrayList<HashMap<String, Object>> list = (ArrayList<HashMap<String, Object>>) value;
-                    if (list != null) {
-                        for (HashMap<String, Object> item : list) {
-                            if (item.containsKey("Name")) {
-                                String name = (String) item.get("Name");
-                                String[] parts = name.split("/");
-                                MapTreeItem curItem = branch;
-                                for (String part : parts) {
-                                    curItem = addTreeItem(part, part.equals(parts[parts.length - 1]) ? item : null, curItem);
-                                }
-                            } else if (item.containsKey("name")) {
-                                String name = (String) item.get("name");
-                                String[] parts = name.split("/");
-                                MapTreeItem curItem = branch;
-                                for (String part : parts) {
-                                    curItem = addTreeItem(part, part.equals(parts[parts.length - 1]) ? item : null, curItem);
-                                }
+                    for (HashMap<String, Object> item : list) {
+                        if (item.containsKey("Name")) {
+                            String name = (String) item.get("Name");
+                            String[] parts = name.split("/");
+                            MapTreeItem curItem = branch;
+                            for (String part : parts) {
+                                curItem = addTreeItem(part, part.equals(parts[parts.length - 1]) ? item : null, curItem);
+                            }
+                        } else if (item.containsKey("name")) {
+                            String name = (String) item.get("name");
+                            String[] parts = name.split("/");
+                            MapTreeItem curItem = branch;
+                            for (String part : parts) {
+                                curItem = addTreeItem(part, part.equals(parts[parts.length - 1]) ? item : null, curItem);
                             }
                         }
                     }
@@ -1508,15 +1496,14 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
     }
 
     private void resetMainContent() {
-        Platform.runLater(() -> {
-            content.getChildren().clear();
-        });
+        Platform.runLater(() -> content.getChildren().clear());
     }
 
     private void resetTreeView() {
         Platform.runLater(() -> {
-            if (treeRoot != null)
+            if (treeRoot != null) {
                 treeRoot.getChildren().clear();
+            }
         });
     }
 
@@ -1530,14 +1517,14 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
 
 
     private class DeleteFileConfirmationOptions {
-        public ButtonType alertResult;
-        public boolean windowClosed = false;
+        ButtonType alertResult;
+        boolean windowClosed = false;
     }
 
     private class CreateDirectoryOptions {
-        public String directoryName;
-        public boolean windowClosed = false;
-        public boolean canceled = false;
+        String directoryName;
+        boolean windowClosed = false;
+        boolean canceled = false;
     }
 
     //Handle distinction between ssh and local here
@@ -1555,11 +1542,11 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
             super(parent, child);
         }
 
-        public ModifiedFile(String pathname) {
+        ModifiedFile(String pathname) {
             super(pathname);
         }
 
-        public ModifiedFile(String pathname, LsEntry associatedLsEntry) {
+        ModifiedFile(String pathname, LsEntry associatedLsEntry) {
             super(pathname);
             this.associatedLsEntry = associatedLsEntry;
         }
@@ -1588,45 +1575,31 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         @Override
         public ModifiedFile[] listFiles() {
             if (associatedLsEntry == null) {
-                ArrayList<ModifiedFile> toReturn = new ArrayList<ModifiedFile>();
+                ArrayList<ModifiedFile> toReturn = new ArrayList<>();
                 File[] files = super.listFiles();
                 if (files != null)
                     for (File f : files) {
                         toReturn.add(new ModifiedFile(f.getAbsolutePath()));
                     }
-                toReturn.sort(new Comparator<ModifiedFile>() {
-
-                    @Override
-                    public int compare(ModifiedFile arg0, ModifiedFile arg1) {
-                        return arg0.getName().compareToIgnoreCase(arg1.getName());
-                    }
-
-                });
-                return (ModifiedFile[]) toReturn.toArray(new ModifiedFile[toReturn.size()]);
+                toReturn.sort((arg0, arg1) -> arg0.getName().compareToIgnoreCase(arg1.getName()));
+                return toReturn.toArray(new ModifiedFile[toReturn.size()]);
             } else {
-                ArrayList<ModifiedFile> toReturn = new ArrayList<ModifiedFile>();
+                ArrayList<ModifiedFile> toReturn = new ArrayList<>();
                 ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
 
                 try {
                     String absPath = this.getAbsolutePathConvertAsLinuxFS();
                     sftpChan.cd(absPath);
-                    Vector<Object> v = sftpChan.ls(absPath);
-                    ArrayList<LsEntry> orderedLSList = new ArrayList<LsEntry>();
+                    Vector<Object> vectorFromLs = sftpChan.ls(absPath);
+                    ArrayList<LsEntry> orderedLSList = new ArrayList<>();
 
-                    if (v.size() > 0) {
+                    if (vectorFromLs.size() > 0) {
 
-                        for (int i = 0; i < v.size(); i++) {
-                            if (!((LsEntry) v.get(i)).getFilename().equals(".") && !((LsEntry) v.get(i)).getFilename().equals(".."))
-                                orderedLSList.add(((LsEntry) v.get(i)));
+                        for (Object resFromLs : vectorFromLs) {
+                            if (!((LsEntry) resFromLs).getFilename().equals(".") && !((LsEntry) resFromLs).getFilename().equals(".."))
+                                orderedLSList.add(((LsEntry) resFromLs));
                         }
-                        orderedLSList.sort(new Comparator<LsEntry>() {
-
-                            @Override
-                            public int compare(LsEntry arg0, LsEntry arg1) {
-                                return arg0.getFilename().compareToIgnoreCase(arg1.getFilename());
-                            }
-
-                        });
+                        orderedLSList.sort((arg0, arg1) -> arg0.getFilename().compareToIgnoreCase(arg1.getFilename()));
 
                         for (LsEntry ls : orderedLSList) {
                             String longName = ls.getFilename();
@@ -1640,35 +1613,28 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                     e.printStackTrace();
                 }
 
-                return (ModifiedFile[]) toReturn.toArray(new ModifiedFile[toReturn.size()]);
+                return toReturn.toArray(new ModifiedFile[toReturn.size()]);
             }
         }
 
         @SuppressWarnings("unchecked")
-        public ModifiedFile[] listFilesForceRemote() {
-            ArrayList<ModifiedFile> toReturn = new ArrayList<ModifiedFile>();
+        ModifiedFile[] listFilesForceRemote() {
+            ArrayList<ModifiedFile> toReturn = new ArrayList<>();
             ChannelSftp sftpChan = model.getPowershellEmpireConnection().getSFTPChannel();
 
             try {
                 String absPath = this.getAbsolutePathConvertAsLinuxFS();
                 sftpChan.cd(absPath);
-                Vector<Object> v = sftpChan.ls(absPath);
-                ArrayList<LsEntry> orderedLSList = new ArrayList<LsEntry>();
+                Vector<Object> vectorOfLsResult = sftpChan.ls(absPath);
+                ArrayList<LsEntry> orderedLSList = new ArrayList<>();
 
-                if (v.size() > 0) {
+                if (vectorOfLsResult.size() > 0) {
 
-                    for (int i = 0; i < v.size(); i++) {
-                        if (!((LsEntry) v.get(i)).getFilename().equals(".") && !((LsEntry) v.get(i)).getFilename().equals(".."))
-                            orderedLSList.add(((LsEntry) v.get(i)));
+                    for (Object lsRes : vectorOfLsResult) {
+                        if (!((LsEntry) lsRes).getFilename().equals(".") && !((LsEntry) lsRes).getFilename().equals(".."))
+                            orderedLSList.add(((LsEntry) lsRes));
                     }
-                    orderedLSList.sort(new Comparator<LsEntry>() {
-
-                        @Override
-                        public int compare(LsEntry arg0, LsEntry arg1) {
-                            return arg0.getFilename().compareToIgnoreCase(arg1.getFilename());
-                        }
-
-                    });
+                    orderedLSList.sort((arg0, arg1) -> arg0.getFilename().compareToIgnoreCase(arg1.getFilename()));
 
                     for (LsEntry ls : orderedLSList) {
                         String longName = ls.getFilename();
@@ -1682,14 +1648,14 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
                 e.printStackTrace();
             }
 
-            return (ModifiedFile[]) toReturn.toArray(new ModifiedFile[toReturn.size()]);
+            return toReturn.toArray(new ModifiedFile[toReturn.size()]);
         }
 
-        public String getAbsolutePathConvertAsLinuxFS() {
+        String getAbsolutePathConvertAsLinuxFS() {
             return this.getAbsolutePath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("\\\\", "/");
         }
 
-        public String getPathConvertAsLinuxFS() {
+        String getPathConvertAsLinuxFS() {
             return this.getPath().replaceAll("^[a-zA-Z]:\\\\", "/").replaceAll("\\\\", "/");
         }
     }
@@ -1699,11 +1665,11 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
         long max = 0;
         javafx.scene.control.ProgressBar progressBarToUse;
         private long percent = -1;
-        int previousOne = 0;
+        //int previousOne = 0;
         boolean notCancelClicked = true;
         Button cancelBtn;
 
-        public MyProgressMonitor(javafx.scene.control.ProgressBar progressBarToUse, Button cancelBtn) {
+        MyProgressMonitor(javafx.scene.control.ProgressBar progressBarToUse, Button cancelBtn) {
             this.progressBarToUse = progressBarToUse;
             this.cancelBtn = cancelBtn;
         }
@@ -1713,9 +1679,7 @@ public class MainView implements ChangeListener<Object>, IReportingAgentView {
 				b.setDisable(true);
 			}*/
             //cancelBtn.setDisable(false);
-            cancelBtn.setOnMouseClicked(event -> {
-                notCancelClicked = false;
-            });
+            cancelBtn.setOnMouseClicked(event -> notCancelClicked = false);
             this.max = max;
             progressBarToUse.setProgress(0);
             count = 0;
