@@ -1,9 +1,4 @@
 package pse_gui.Views;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -19,6 +14,7 @@ import javafx.scene.layout.VBox;
 import pse_gui.Comm.ConnectEvent;
 import pse_gui.Models.PowershellEmpireInformations;
 import pse_gui.Models.SSHInformations;
+import pse_gui.Utils.Settings.SettingsManager;
 import pse_gui.Utils.SharedCentralisedClass;
 
 @SuppressWarnings("restriction")
@@ -51,19 +47,6 @@ public class LoginView {
 	@FXML CheckBox checkBoxToken;
 	@FXML TextField tokenTxtField;
 	@FXML Label tokenLbl;
-	
-	private final String CONNECTION_INFORMATION_FILES = System.getProperty("user.home") + "/PSEConnectionInformations.psegui";
-	private final String POWERSHELLEMPIRE_USERNAME_KEY = "POWERSHELLEMPIRE_USERNAME";
-	private final String POWERSHELLEMPIRE_PASSWORD_KEY = "POWERSHELLEMPIRE_PASSWORD";
-	private final String POWERSHELLEPMIRE_ADDRESS_KEY = "POWERSHELLEPMIRE_ADDRESS";
-	private final String POWERSHELLEMPIRE_PORT_KEY = "POWERSHELLEMPIRE_PORT";
-	private final String SSH_USERNAME_KEY = "SSH_USERNAME";
-	private final String SSH_PASSWORD_KEY = "PASSWORD_SSH";
-	private final String SSH_PORT_KEY = "SSH_PORT";
-	private final String SERVER_ADDRESS_KEY = "SERVER_ADDRESS";
-	private final String TOKEN = "TOKEN";
-	private final String SEPARATOR = "=";
-	private final String NEW_LINE = System.getProperty("line.separator");
 
 	public LoginView() {
 
@@ -71,7 +54,7 @@ public class LoginView {
 
 	@FXML
 	public void initialize() {
-		readFile();
+		readSettings();
 		setRemoteValuesDisabled(true);
 		setUseTokenInsteadDisabled(true);
 
@@ -150,7 +133,7 @@ public class LoginView {
 	}
 	
 	private void fireConnect() {
-		writeToFile();
+		saveSettings();
 		if(root != null) {
 			root.getScene().getWindow().fireEvent(new ConnectEvent());
 		}
@@ -202,55 +185,30 @@ public class LoginView {
 		sshAddress.setDisable(disabled);
 		sshPort.setDisable(disabled);
 	}
-	//TODO generalise this method in an util class
-	private void readFile(){
-		try{
-			if (Files.exists(Paths.get(CONNECTION_INFORMATION_FILES))){
-				for (String line : Files.readAllLines(Paths.get(CONNECTION_INFORMATION_FILES))) {
-				    String[] keyValue = line.split(SEPARATOR, 2);
-				    if (keyValue[0].equals(POWERSHELLEMPIRE_USERNAME_KEY))
-				    	username.setText(keyValue[1]);
-				    else if (keyValue[0].equals(POWERSHELLEMPIRE_PASSWORD_KEY))
-				    	password.setText(keyValue[1]);
-				    else if (keyValue[0].equals(POWERSHELLEPMIRE_ADDRESS_KEY))
-				    	address.setText(keyValue[1]);
-				    else if (keyValue[0].equals(POWERSHELLEMPIRE_PORT_KEY))
-				    	port.setText(keyValue[1]);
-				    else if (keyValue[0].equals(SSH_USERNAME_KEY))
-				    	sshUsername.setText(keyValue[1]);
-				    else if (keyValue[0].equals(SSH_PASSWORD_KEY))
-				    	sshPassword.setText(keyValue[1]);
-				    else if (keyValue[0].equals(SSH_PORT_KEY))
-				    	sshPort.setText(keyValue[1]);
-				    else if (keyValue[0].equals(SERVER_ADDRESS_KEY))
-				    	sshAddress.setText(keyValue[1]);
-				    else if (keyValue[0].equals(TOKEN))
-				    	tokenTxtField.setText(keyValue[1]);
-				}
-			}
-		}
-		catch(Exception e){	}
+
+	private void readSettings(){
+		username.setText(SettingsManager.getInstance().getLoginUsername());
+		password.setText(SettingsManager.getInstance().getLoginPassword());
+		address.setText(SettingsManager.getInstance().getLoginAddress());
+		port.setText(SettingsManager.getInstance().getLoginPort());
+		sshUsername.setText(SettingsManager.getInstance().getLoginSshUsername());
+		sshPassword.setText(SettingsManager.getInstance().getLoginSshPassword());
+		sshPort.setText(SettingsManager.getInstance().getLoginSshPort());
+		sshAddress.setText(SettingsManager.getInstance().getLoginSshAddress());
+		tokenTxtField.setText(SettingsManager.getInstance().getLoginTokenTxtField());
 	}
 	
-	private void writeToFile(){
-		try {
-			FileOutputStream steam = new FileOutputStream(new File(CONNECTION_INFORMATION_FILES), false);
-			String text = "";
-			text += POWERSHELLEMPIRE_USERNAME_KEY + SEPARATOR + username.getText() + NEW_LINE;
-			text += POWERSHELLEMPIRE_PASSWORD_KEY + SEPARATOR + password.getText() + NEW_LINE;
-			text += POWERSHELLEPMIRE_ADDRESS_KEY + SEPARATOR + address.getText() + NEW_LINE;
-			text += POWERSHELLEMPIRE_PORT_KEY + SEPARATOR + port.getText() + NEW_LINE;
-			text += SSH_USERNAME_KEY + SEPARATOR + sshUsername.getText() + NEW_LINE;
-			text += SSH_PASSWORD_KEY + SEPARATOR + sshPassword.getText() + NEW_LINE;
-			text += SSH_PORT_KEY + SEPARATOR + sshPort.getText() + NEW_LINE;
-			text += SERVER_ADDRESS_KEY + SEPARATOR + sshAddress.getText() + NEW_LINE;
-			text += TOKEN + SEPARATOR + tokenTxtField.getText() + NEW_LINE;
-			byte[] myBytes = text.getBytes();
-			steam.write(myBytes);
-			steam.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	private void saveSettings(){
+		SettingsManager.getInstance().setLoginUsername(username.getText());
+		SettingsManager.getInstance().setLoginPassword(password.getText());
+		SettingsManager.getInstance().setLoginAddress(address.getText());
+		SettingsManager.getInstance().setLoginPort(port.getText());
+		SettingsManager.getInstance().setLoginSshUsername(sshUsername.getText());
+		SettingsManager.getInstance().setLoginSshPassword(sshPassword.getText());
+		SettingsManager.getInstance().setLoginSshPort(sshPort.getText());
+		SettingsManager.getInstance().setLoginSshAddress(sshAddress.getText());
+		SettingsManager.getInstance().setLoginTokenTxtField(tokenTxtField.getText());
+		SettingsManager.getInstance().saveSettingsToFile();
 	}
 
 }
