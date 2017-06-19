@@ -2,8 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.control.BreadCrumbBar?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.Tab?>
 
 <BorderPane prefHeight="400.0"
 		    prefWidth="600.0"
@@ -39,11 +37,9 @@
 						  styleClass="container">
 						<Label text="Empire components" 
 							   styleClass="boldLabel"/>
-				         <TreeView fx:id="tree" 
-				         		   VBox.vgrow="always"
-						           showRoot="false">
-				          	<cellFactory></cellFactory>
-				          </TreeView>
+						<TreeView fx:id="tree"
+								  VBox.vgrow="always"
+								  showRoot="false"/>
 			          </VBox>
 			          <AnchorPane>
 				          <SplitPane fx:id="verticalSplitPane"
@@ -70,8 +66,7 @@
 					          		<VBox HBox.hgrow="always">
 						          		<Label text="Past events"
 						          			   styleClass="boldLabel"/>
-					          			<TextArea fx:id="logTextArea" 
-							          			  text=""
+					          			<TextArea fx:id="logTextArea"
 							          			  editable="false"
 							          			  VBox.vgrow="always"/>
 						          	</VBox>
@@ -219,12 +214,12 @@
 					<VBox>
 						<HBox VBox.vgrow="never">
 							<Label text="Refresh agents every: "/>
-							<TextField text="5" fx:id="settingsRefreshAgentDelayTextField"></TextField>
+							<TextField text="5" fx:id="settingsRefreshAgentDelayTextField"/>
 							<Label text=" seconds (0 to disable)"/>
 						</HBox>
 						<HBox VBox.vgrow="never">
 							<Label text="Verbose level: (1-3) "/>
-							<TextField text="1" fx:id="settingsVerboseLevelTextField"></TextField>
+							<TextField text="3" fx:id="settingsVerboseLevelTextField"/>
 						</HBox>
 					</VBox>
 					<VBox>
